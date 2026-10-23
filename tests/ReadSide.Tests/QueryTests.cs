@@ -45,4 +45,14 @@ public class QueryTests
         Assert.Equal("SELECT * FROM Books", original.Build().Sql);
         Assert.Equal("SELECT * FROM Books WHERE (Id > @p0)", filtered.Build().Sql);
     }
+
+    [Fact]
+    public void Select_replaces_star_with_columns()
+    {
+        var result = Query.From<Book>()
+            .Select(book => new { book.Title, book.Id })
+            .Build();
+
+        Assert.Equal("SELECT Title, Id FROM Books", result.Sql);
+    }
 }
