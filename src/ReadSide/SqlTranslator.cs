@@ -55,6 +55,12 @@ public static class SqlTranslator
             return $"NOT {ToSql(unary.Operand, parameters)}";
         }
 
+        if(node is NewExpression created)
+        {
+            var columns = created.Arguments.Select(argument => ToSql(argument, parameters));
+            return string.Join(", ", columns);
+        }
+
         throw new NotSupportedException($"Unsupported node: {node.NodeType}");
     }
 
