@@ -64,6 +64,12 @@ public static class SqlTranslator
         throw new NotSupportedException($"Unsupported node: {node.NodeType}");
     }
 
+    public static string ToOrderBy(IEnumerable<(Expression Column, bool Descending)> clauses)
+    {
+        var columns = clauses.Select(c => $"{ToSql(c.Column, [])} {(c.Descending ? "DESC" : "ASC")}");
+        return string.Join(", ", columns);
+    }
+
     public static string GetOperator(ExpressionType type) => type switch
     {
         ExpressionType.Equal => "=",
