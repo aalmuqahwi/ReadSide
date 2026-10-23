@@ -70,6 +70,20 @@ public static class SqlTranslator
         return string.Join(", ", columns);
     }
 
+    public static string ToPaging(int skip, int take, Dictionary<string, object?> parameters)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(skip);
+        ArgumentOutOfRangeException.ThrowIfLessThan(take, 1);
+
+        var skipName = $"p{parameters.Count}";
+        parameters[skipName] = skip;
+
+        var takeName = $"p{parameters.Count}";
+        parameters[takeName] = take;
+
+        return $"OFFSET @{skipName} ROWS FETCH NEXT @{takeName} ROWS ONLY";
+    }
+
     public static string GetOperator(ExpressionType type) => type switch
     {
         ExpressionType.Equal => "=",
