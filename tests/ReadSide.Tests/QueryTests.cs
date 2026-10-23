@@ -55,4 +55,49 @@ public class QueryTests
 
         Assert.Equal("SELECT Title, Id FROM Books", result.Sql);
     }
+
+    [Fact]
+    public void OrderBy_and_ThenByDescending_add_order_by_clause()
+    {
+        var result = Query.From<Book>()
+            .OrderBy(book => book.Title)
+            .ThenByDescending(book => book.Id)
+            .Build();
+
+        Assert.Equal("SELECT * FROM Books ORDER BY Title ASC, Id DESC", result.Sql);
+    }
+
+    [Fact]
+    public void Where_comes_before_order_by_whatever_the_call_order()
+    {
+        var result = Query.From<Book>()
+            .OrderBy(book => book.Title)
+            .Where(book => book.Id > 1)
+            .Build();
+
+        Assert.Equal("SELECT * FROM Books WHERE (Id > @p0) ORDER BY Title ASC", result.Sql);
+        Assert.Equal(1, result.Parameters["p0"]);
+    }
+
+    [Fact]
+    public void OrderByDescending_and_ThenBy_add_order_by_clause()
+    {
+        var result = Query.From<Book>()
+            .OrderByDescending(book => book.Id)
+            .ThenBy(book => book.Title)
+            .Build();
+
+        Assert.Equal("SELECT * FROM Books ORDER BY Id DESC, Title ASC", result.Sql);
+    }
+
+    [Fact]
+    public void OrderBy_called_twice_starts_a_new_ordering()
+    {
+        var result = Query.From<Book>()
+            .OrderBy(book => book.Title)
+            .OrderBy(book => book.Id)
+            .Build();
+
+        Assert.Equal("SELECT * FROM Books ORDER BY Id ASC", result.Sql);
+    }
 }
