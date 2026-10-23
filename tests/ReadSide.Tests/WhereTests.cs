@@ -163,4 +163,16 @@ public class WhereTests
 
         Assert.Throws<NotSupportedException>(() => SqlTranslator.ToSql(expression.Body, parameters));
     }
+
+    [Fact]
+    public void Unsupported_node_message_includes_the_expression_text()
+    {
+        var parameters = new Dictionary<string, object?>();
+        Expression<Func<Book, bool>> expression = book => book.Title!.Contains("x");
+
+        var exception = Assert.Throws<NotSupportedException>(
+            () => SqlTranslator.ToSql(expression.Body, parameters));
+
+        Assert.Contains("Contains", exception.Message);
+    }
 }

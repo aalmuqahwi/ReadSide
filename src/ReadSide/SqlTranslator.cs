@@ -45,7 +45,7 @@ public static class SqlTranslator
 
             var left = ToSql(binary.Left, parameters);
             var right = ToSql(binary.Right, parameters);
-            var op = GetOperator(binary.NodeType);
+            var op = GetOperator(binary);
 
             return $"({left} {op} {right})";
         }
@@ -55,13 +55,13 @@ public static class SqlTranslator
             return $"NOT {ToSql(unary.Operand, parameters)}";
         }
 
-        if(node is NewExpression created)
+        if (node is NewExpression created)
         {
             var columns = created.Arguments.Select(argument => ToSql(argument, parameters));
             return string.Join(", ", columns);
         }
 
-        throw new NotSupportedException($"Unsupported node: {node.NodeType}");
+        throw new NotSupportedException($"Cannot translate '{node}' to SQL (node type: {node.NodeType}).");
     }
 
     public static string ToOrderBy(IEnumerable<(Expression Column, bool Descending)> clauses)
@@ -84,7 +84,7 @@ public static class SqlTranslator
         return $"OFFSET @{skipName} ROWS FETCH NEXT @{takeName} ROWS ONLY";
     }
 
-    public static string GetOperator(ExpressionType type) => type switch
+    private static string GetOperator(BinaryExpression binary) => binary.NodeType switch
     {
         ExpressionType.Equal => "=",
         ExpressionType.NotEqual => "<>",
@@ -94,6 +94,6 @@ public static class SqlTranslator
         ExpressionType.LessThanOrEqual => "<=",
         ExpressionType.AndAlso => "AND",
         ExpressionType.OrElse => "OR",
-        _ => throw new NotSupportedException($"Unsupported operator: {type}")
+        _ => throw new NotSupportedException($"Cannot translate '{binary}' to SQL (operator: {binary.NodeType}).")
     };
 }
