@@ -175,4 +175,17 @@ public class WhereTests
 
         Assert.Contains("Contains", exception.Message);
     }
+
+    [Fact]
+    public void Convert_is_ignored_and_the_operand_is_translated()
+    {
+        var parameters = new Dictionary<string, object?>();
+        long big = 5;
+        Expression<Func<Book, bool>> expression = book => book.Id == big;
+
+        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+
+        Assert.Equal("(Id = @p0)", sql);
+        Assert.Equal(5L, parameters["p0"]);
+    }
 }

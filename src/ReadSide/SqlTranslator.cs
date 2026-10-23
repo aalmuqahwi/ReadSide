@@ -55,6 +55,11 @@ public static class SqlTranslator
             return $"NOT {ToSql(unary.Operand, parameters)}";
         }
 
+        if (node is UnaryExpression { NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked } conversion)
+        {
+            return ToSql(conversion.Operand, parameters);
+        }
+
         if (node is NewExpression created)
         {
             var columns = created.Arguments.Select(argument => ToSql(argument, parameters));
