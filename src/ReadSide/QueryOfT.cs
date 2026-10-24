@@ -54,7 +54,7 @@ public sealed class Query<T>
             ? "*"
             : SqlTranslator.ToSql(_state.Columns, parameters);
 
-        var sql = $"SELECT {columns} FROM {typeof(T).Name}s";
+        var sql = $"SELECT {columns} FROM {SqlTranslator.Quote(typeof(T).Name + "s")}";
 
         if (_state.Conditions.Count > 0)
         {
