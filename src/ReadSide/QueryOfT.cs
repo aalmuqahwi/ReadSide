@@ -7,11 +7,13 @@ public sealed class Query<T>
     private sealed record State(
         IReadOnlyList<Expression> Conditions,
         Expression? Columns,
-        IReadOnlyList<(Expression Column, bool Descending)> Orders);
+        IReadOnlyList<(Expression Column, bool Descending)> Orders,
+        int? Skip,
+        int? Take);
 
     private readonly State _state;
 
-    internal Query() : this(new State([], null, []))
+    internal Query() : this(new State([], null, [], null, null))
     {
     }
 
@@ -38,6 +40,12 @@ public sealed class Query<T>
     public Query<T> ThenByDescending<TKey>(Expression<Func<T, TKey>> key)
         => new(_state with { Orders = [.. _state.Orders, (key.Body, true)] });
 
+    public Query<T> Skip(int rows)
+        => new(_state with { Skip = rows });
+
+    public Query<T> Take(int rows)
+        => new(_state with { Take = rows });
+
     public SqlResult Build()
     {
         var parameters = new Dictionary<string, object?>();
@@ -57,6 +65,20 @@ public sealed class Query<T>
         if (_state.Orders.Count > 0)
         {
             sql += " ORDER BY " + SqlTranslator.ToOrderBy(_state.Orders);
+        }
+
+        if (_state.Take is not null)
+        {
+            if (_state.Orders.Count == 0)
+            {
+                throw new InvalidOperationException("Paging requires an OrderBy.");
+            }
+
+            sql += " " + SqlTranslator.ToPaging(_state.Skip ?? 0, _state.Take.Value, parameters);
+        }
+        else if (_state.Skip is not null)
+        {
+            throw new InvalidOperationException("Skip requires Take.");
         }
 
         return new SqlResult(sql, parameters);

@@ -100,4 +100,68 @@ public class QueryTests
 
         Assert.Equal("SELECT * FROM Books ORDER BY Id ASC", result.Sql);
     }
+
+    [Fact]
+    public void Skip_and_take_add_offset_fetch_after_order_by()
+    {
+        var result = Query.From<Book>()
+            .OrderBy(book => book.Id)
+            .Skip(10)
+            .Take(5)
+            .Build();
+
+        Assert.Equal(
+            "SELECT * FROM Books ORDER BY Id ASC OFFSET @p0 ROWS FETCH NEXT @p1 ROWS ONLY",
+            result.Sql
+        );
+
+        Assert.Equal(10, result.Parameters["p0"]);
+        Assert.Equal(5, result.Parameters["p1"]);
+    }
+
+    [Fact]
+    public void Take_alone_starts_at_offset_zero()
+    {
+        var result = Query.From<Book>()
+            .OrderBy(book => book.Id)
+            .Take(5)
+            .Build();
+
+        Assert.Equal(
+            "SELECT * FROM Books ORDER BY Id ASC OFFSET @p0 ROWS FETCH NEXT @p1 ROWS ONLY",
+            result.Sql
+        );
+
+        Assert.Equal(0, result.Parameters["p0"]);
+        Assert.Equal(5, result.Parameters["p1"]);
+    }
+
+    [Fact]
+    public void Paging_without_order_by_throws()
+    {
+        var query = Query.From<Book>()
+            .Skip(10)
+            .Take(5);
+
+        var exception = Assert.Throws<InvalidOperationException>(() => query.Build());
+
+        Assert.Contains("Paging requires an OrderBy.", exception.Message);
+    }
+
+    [Fact]
+    public void Paging_continues_numbering_after_where()
+    {
+        var result = Query.From<Book>()
+            .Where(book => book.Id > 1)
+            .OrderBy(book => book.Id)
+            .Take(5)
+            .Build();
+
+        Assert.Equal(
+            "SELECT * FROM Books WHERE (Id > @p0) ORDER BY Id ASC OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY",
+            result.Sql);
+        Assert.Equal(1, result.Parameters["p0"]);
+        Assert.Equal(0, result.Parameters["p1"]);
+        Assert.Equal(5, result.Parameters["p2"]);
+    }
 }
