@@ -89,6 +89,8 @@ internal static class SqlTranslator
         return $"OFFSET @{skipName} ROWS FETCH NEXT @{takeName} ROWS ONLY";
     }
 
+    internal static string Quote(string name) => $"[{name.Replace("]", "]]")}]";
+
     private static string GetOperator(BinaryExpression binary) => binary.NodeType switch
     {
         ExpressionType.Equal => "=",
