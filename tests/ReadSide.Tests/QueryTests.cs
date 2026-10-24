@@ -20,7 +20,7 @@ public class QueryTests
             .Where(book => book.Id == 5)
             .Build();
 
-        Assert.Equal("SELECT * FROM Books WHERE (Id = @p0)", result.Sql);
+        Assert.Equal("SELECT * FROM Books WHERE ([Id] = @p0)", result.Sql);
         Assert.Equal(5, result.Parameters["p0"]);
     }
 
@@ -32,7 +32,7 @@ public class QueryTests
             .Where(book => book.Title != null)
             .Build();
 
-        Assert.Equal("SELECT * FROM Books WHERE (Id > @p0) AND (Title IS NOT NULL)", result.Sql);
+        Assert.Equal("SELECT * FROM Books WHERE ([Id] > @p0) AND ([Title] IS NOT NULL)", result.Sql);
         Assert.Equal(1, result.Parameters["p0"]);
     }
 
@@ -43,7 +43,7 @@ public class QueryTests
         var filtered = original.Where(book => book.Id > 1);
 
         Assert.Equal("SELECT * FROM Books", original.Build().Sql);
-        Assert.Equal("SELECT * FROM Books WHERE (Id > @p0)", filtered.Build().Sql);
+        Assert.Equal("SELECT * FROM Books WHERE ([Id] > @p0)", filtered.Build().Sql);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class QueryTests
             .Select(book => new { book.Title, book.Id })
             .Build();
 
-        Assert.Equal("SELECT Title, Id FROM Books", result.Sql);
+        Assert.Equal("SELECT [Title], [Id] FROM Books", result.Sql);
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class QueryTests
             .ThenByDescending(book => book.Id)
             .Build();
 
-        Assert.Equal("SELECT * FROM Books ORDER BY Title ASC, Id DESC", result.Sql);
+        Assert.Equal("SELECT * FROM Books ORDER BY [Title] ASC, [Id] DESC", result.Sql);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class QueryTests
             .Where(book => book.Id > 1)
             .Build();
 
-        Assert.Equal("SELECT * FROM Books WHERE (Id > @p0) ORDER BY Title ASC", result.Sql);
+        Assert.Equal("SELECT * FROM Books WHERE ([Id] > @p0) ORDER BY [Title] ASC", result.Sql);
         Assert.Equal(1, result.Parameters["p0"]);
     }
 
@@ -87,7 +87,7 @@ public class QueryTests
             .ThenBy(book => book.Title)
             .Build();
 
-        Assert.Equal("SELECT * FROM Books ORDER BY Id DESC, Title ASC", result.Sql);
+        Assert.Equal("SELECT * FROM Books ORDER BY [Id] DESC, [Title] ASC", result.Sql);
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class QueryTests
             .OrderBy(book => book.Id)
             .Build();
 
-        Assert.Equal("SELECT * FROM Books ORDER BY Id ASC", result.Sql);
+        Assert.Equal("SELECT * FROM Books ORDER BY [Id] ASC", result.Sql);
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class QueryTests
             .Build();
 
         Assert.Equal(
-            "SELECT * FROM Books ORDER BY Id ASC OFFSET @p0 ROWS FETCH NEXT @p1 ROWS ONLY",
+            "SELECT * FROM Books ORDER BY [Id] ASC OFFSET @p0 ROWS FETCH NEXT @p1 ROWS ONLY",
             result.Sql
         );
 
@@ -128,7 +128,7 @@ public class QueryTests
             .Build();
 
         Assert.Equal(
-            "SELECT * FROM Books ORDER BY Id ASC OFFSET @p0 ROWS FETCH NEXT @p1 ROWS ONLY",
+            "SELECT * FROM Books ORDER BY [Id] ASC OFFSET @p0 ROWS FETCH NEXT @p1 ROWS ONLY",
             result.Sql
         );
 
@@ -158,7 +158,7 @@ public class QueryTests
             .Build();
 
         Assert.Equal(
-            "SELECT * FROM Books WHERE (Id > @p0) ORDER BY Id ASC OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY",
+            "SELECT * FROM Books WHERE ([Id] > @p0) ORDER BY [Id] ASC OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY",
             result.Sql);
         Assert.Equal(1, result.Parameters["p0"]);
         Assert.Equal(0, result.Parameters["p1"]);

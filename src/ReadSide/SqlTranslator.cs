@@ -18,7 +18,7 @@ internal static class SqlTranslator
         {
             if (member.Expression is ParameterExpression)
             {
-                return member.Member.Name;
+                return Quote(member.Member.Name);
             }
 
             var value = Expression.Lambda(member).Compile().DynamicInvoke();

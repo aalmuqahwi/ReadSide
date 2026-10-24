@@ -17,7 +17,7 @@ public class SelectTests
 
         var sql = SqlTranslator.ToSql(expression.Body, parameters);
 
-        Assert.Equal("Title", sql);
+        Assert.Equal("[Title]", sql);
         Assert.Empty(parameters);
     }
 
@@ -28,7 +28,7 @@ public class SelectTests
 
         var sql = Translate(book => new { book.Title, book.Id }, parameters);
 
-        Assert.Equal("Title, Id", sql);
+        Assert.Equal("[Title], [Id]", sql);
         Assert.Empty(parameters);
     }
 }

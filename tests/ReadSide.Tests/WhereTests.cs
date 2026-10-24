@@ -15,7 +15,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(expression.Body, parameters);
 
-        Assert.Equal("(Id = @p0)", sql);
+        Assert.Equal("([Id] = @p0)", sql);
         Assert.Equal(3, parameters["p0"]);
     }
 
@@ -27,7 +27,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(expression.Body, parameters);
 
-        Assert.Equal("(Id <> @p0)", sql);
+        Assert.Equal("([Id] <> @p0)", sql);
         Assert.Equal(3, parameters["p0"]);
     }
 
@@ -39,7 +39,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(expression.Body, parameters);
 
-        Assert.Equal("(Id > @p0)", sql);
+        Assert.Equal("([Id] > @p0)", sql);
         Assert.Equal(3, parameters["p0"]);
     }
 
@@ -51,7 +51,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(expression.Body, parameters);
 
-        Assert.Equal("(Id >= @p0)", sql);
+        Assert.Equal("([Id] >= @p0)", sql);
         Assert.Equal(3, parameters["p0"]);
     }
 
@@ -63,7 +63,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(expression.Body, parameters);
 
-        Assert.Equal("(Id < @p0)", sql);
+        Assert.Equal("([Id] < @p0)", sql);
         Assert.Equal(3, parameters["p0"]);
     }
 
@@ -75,7 +75,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(expression.Body, parameters);
 
-        Assert.Equal("(Id <= @p0)", sql);
+        Assert.Equal("([Id] <= @p0)", sql);
         Assert.Equal(3, parameters["p0"]);
     }
 
@@ -87,7 +87,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(expression.Body, parameters);
 
-        Assert.Equal("((Id = @p0) AND (Title = @p1))", sql);
+        Assert.Equal("(([Id] = @p0) AND ([Title] = @p1))", sql);
         Assert.Equal(3, parameters["p0"]);
         Assert.Equal("test", parameters["p1"]);
     }
@@ -100,7 +100,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(expression.Body, parameters);
 
-        Assert.Equal("NOT (Id = @p0)", sql);
+        Assert.Equal("NOT ([Id] = @p0)", sql);
         Assert.Equal(3, parameters["p0"]);
     }
 
@@ -112,7 +112,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(expression.Body, parameters);
 
-        Assert.Equal("(Title IS NULL)", sql);
+        Assert.Equal("([Title] IS NULL)", sql);
         Assert.Empty(parameters);
     }
 
@@ -124,7 +124,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(expression.Body, parameters);
 
-        Assert.Equal("(Title IS NOT NULL)", sql);
+        Assert.Equal("([Title] IS NOT NULL)", sql);
         Assert.Empty(parameters);
     }
 
@@ -136,7 +136,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(expression.Body, parameters);
 
-        Assert.Equal("(((Id = @p0) OR (Id = @p1)) AND (Id > @p2))", sql);
+        Assert.Equal("((([Id] = @p0) OR ([Id] = @p1)) AND ([Id] > @p2))", sql);
         Assert.Equal(1, parameters["p0"]);
         Assert.Equal(2, parameters["p1"]);
         Assert.Equal(3, parameters["p2"]);
@@ -151,7 +151,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(expression.Body, parameters);
 
-        Assert.Equal("(Title = @p0)", sql);
+        Assert.Equal("([Title] = @p0)", sql);
         Assert.Equal("C# Expressions", parameters["p0"]);
     }
 
@@ -185,7 +185,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(expression.Body, parameters);
 
-        Assert.Equal("(Id = @p0)", sql);
+        Assert.Equal("([Id] = @p0)", sql);
         Assert.Equal(5L, parameters["p0"]);
     }
 }
