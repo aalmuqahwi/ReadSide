@@ -10,6 +10,7 @@
 
   <PropertyGroup>
     <Authors>aalmuqahwi</Authors>
+    <Version>0.1.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <DebugType>embedded</DebugType>
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
