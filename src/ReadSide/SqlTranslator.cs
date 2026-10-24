@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace ReadSide;
 
-public static class SqlTranslator
+internal static class SqlTranslator
 {
     public static string ToSql(Expression node, Dictionary<string, object?> parameters)
     {
