@@ -62,7 +62,19 @@ internal static class SqlTranslator
 
         if (node is NewExpression created)
         {
-            var columns = created.Arguments.Select(argument => ToSql(argument, parameters));
+            var columns = created.Arguments.Select((argument, index) =>
+            {
+                var column = ToSql(argument, parameters);
+                var alias = created.Members?[index].Name;
+
+                var isPlainColumn = argument is MemberExpression { Expression: ParameterExpression } access
+                                    && access.Member.Name == alias;
+
+                return alias is null || isPlainColumn
+                    ? column
+                    : $"{column} AS {Quote(alias)}";
+            });
+
             return string.Join(", ", columns);
         }
 

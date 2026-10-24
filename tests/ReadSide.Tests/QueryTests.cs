@@ -164,4 +164,14 @@ public class QueryTests
         Assert.Equal(0, result.Parameters["p1"]);
         Assert.Equal(5, result.Parameters["p2"]);
     }
+
+    [Fact]
+    public void Renamed_member_in_anonymous_type_becomes_alias()
+    {
+        var result = Query.From<Book>()
+            .Select(book => new { BookTitle = book.Title, book.Id })
+            .Build();
+
+        Assert.Equal("SELECT [Title] AS [BookTitle], [Id] FROM [Books]", result.Sql);
+    }
 }
