@@ -188,4 +188,16 @@ public class WhereTests
         Assert.Equal("([Id] = @p0)", sql);
         Assert.Equal(5L, parameters["p0"]);
     }
+
+    [Fact]
+    public void Contains_becomes_like_with_whildcards_in_the_parameter()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.Title!.Contains("dune");
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([Title] LIKE @p0)", sql);
+        Assert.Equal("%dune%", parameters["p0"]);
+    }
 }

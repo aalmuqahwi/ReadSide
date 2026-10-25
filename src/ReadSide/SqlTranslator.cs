@@ -78,6 +78,19 @@ internal static class SqlTranslator
             return string.Join(", ", columns);
         }
 
+        if (node is MethodCallExpression call
+            && call.Method.DeclaringType == typeof(string)
+            && call.Method.Name == "Contains")
+        {
+            var column = ToSql(call.Object!, parameters);
+            var value = ((ConstantExpression)call.Arguments[0]).Value;
+
+            var name = $"p{parameters.Count}";
+            parameters[name] = $"%{value}%";
+
+            return $"({column} LIKE @{name})";
+        }
+
         throw new NotSupportedException($"Cannot translate '{node}' to SQL (node type: {node.NodeType}).");
     }
 
