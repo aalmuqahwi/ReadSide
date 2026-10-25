@@ -11,11 +11,19 @@ public sealed class Query<T>
         Expression? Columns,
         IReadOnlyList<(Expression Column, bool Descending)> Orders,
         int? Skip,
-        int? Take);
+        int? Take)
+    {
+        public static readonly State Empty = new(
+            Conditions: [],
+            Columns: null,
+            Orders: [],
+            Skip: null,
+            Take: null);
+    }
 
     private readonly State _state;
 
-    internal Query() : this(new State([], null, [], null, null))
+    internal Query() : this(State.Empty)
     {
     }
 
