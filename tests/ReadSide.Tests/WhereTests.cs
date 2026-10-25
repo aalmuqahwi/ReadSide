@@ -197,7 +197,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(predicate.Body, parameters);
 
-        Assert.Equal("([Title] LIKE @p0)", sql);
+        Assert.Equal("([Title] LIKE @p0 ESCAPE '\\')", sql);
         Assert.Equal("%dune%", parameters["p0"]);
     }
 
@@ -210,7 +210,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(predicate.Body, parameters);
 
-        Assert.Equal("([Title] LIKE @p0)", sql);
+        Assert.Equal("([Title] LIKE @p0 ESCAPE '\\')", sql);
         Assert.Equal("%dune%", parameters["p0"]);
     }
 
@@ -222,7 +222,7 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(predicate.Body, parameters);
 
-        Assert.Equal("([Title] LIKE @p0)", sql);
+        Assert.Equal("([Title] LIKE @p0 ESCAPE '\\')", sql);
         Assert.Equal("du%", parameters["p0"]);
     }
 
@@ -234,7 +234,19 @@ public class WhereTests
 
         var sql = SqlTranslator.ToSql(predicate.Body, parameters);
 
-        Assert.Equal("([Title] LIKE @p0)", sql);
+        Assert.Equal("([Title] LIKE @p0 ESCAPE '\\')", sql);
         Assert.Equal("%ne", parameters["p0"]);
+    }
+
+    [Fact]
+    public void Like_escapes_wildcard_characters_in_the_value()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.Title!.Contains("100%_[x]");
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([Title] LIKE @p0 ESCAPE '\\')", sql);
+        Assert.Equal("%100\\%\\_\\[x]%", parameters["p0"]);
     }
 }

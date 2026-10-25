@@ -83,7 +83,7 @@ internal static class SqlTranslator
             && call.Method.Name is "Contains" or "StartsWith" or "EndsWith")
         {
             var column = ToSql(call.Object!, parameters);
-            var value = GetValue(call.Arguments[0]);
+            var value = EscapeLike(GetValue(call.Arguments[0])?.ToString() ?? "");
 
             var pattern = call.Method.Name switch
             {
@@ -95,7 +95,7 @@ internal static class SqlTranslator
             var name = $"p{parameters.Count}";
             parameters[name] = pattern;
 
-            return $"({column} LIKE @{name})";
+            return $"({column} LIKE @{name} ESCAPE '\\')";
         }
 
         throw new NotSupportedException($"Cannot translate '{node}' to SQL (node type: {node.NodeType}).");
@@ -138,11 +138,17 @@ internal static class SqlTranslator
 
     private static object? GetValue(Expression expression)
     {
-        if(expression is ConstantExpression constant)
+        if (expression is ConstantExpression constant)
         {
             return constant.Value;
         }
 
         return Expression.Lambda(expression).Compile().DynamicInvoke();
     }
+
+    private static string EscapeLike(string value) => value
+        .Replace("\\", "\\\\")
+        .Replace("%", "\\%")
+        .Replace("_", "\\_")
+        .Replace("[", "\\[");
 }
