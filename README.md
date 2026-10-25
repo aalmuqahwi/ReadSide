@@ -86,4 +86,5 @@ dotnet test
 - **`with` expression**, Microsoft Learn (C# docs): copying a record with one change, behind the immutable `Query<T>`
 - **Collection expressions**, Microsoft Learn (C# docs): the `[.. list, item]` syntax used to extend lists without mutating them
 - **Conventional Commits**: the commit message style used in this repository
-- **[SqlKata](https://github.com/sqlkata/querybuilder)**, on GitHub: where I first saw how a fluent query builder is put together (clauses collected, SQL compiled at the end)
+- **[SqlKata](https://github.com/sqlkata/querybuilder)**, on GitHub: where I first saw how a fluent query builder is put together
+- **LIKE (Transact-SQL)**, on Microsoft Learn (the section on the ESCAPE clause): which characters are special in a LIKE pattern, and how ESCAPE makes them match literally. (clauses collected, SQL compiled at the end)
