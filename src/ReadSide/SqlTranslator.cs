@@ -80,13 +80,20 @@ internal static class SqlTranslator
 
         if (node is MethodCallExpression call
             && call.Method.DeclaringType == typeof(string)
-            && call.Method.Name == "Contains")
+            && call.Method.Name is "Contains" or "StartsWith" or "EndsWith")
         {
             var column = ToSql(call.Object!, parameters);
             var value = GetValue(call.Arguments[0]);
 
+            var pattern = call.Method.Name switch
+            {
+                "StartsWith" => $"{value}%",
+                "EndsWith" => $"%{value}",
+                _ => $"%{value}%"
+            };
+
             var name = $"p{parameters.Count}";
-            parameters[name] = $"%{value}%";
+            parameters[name] = pattern;
 
             return $"({column} LIKE @{name})";
         }

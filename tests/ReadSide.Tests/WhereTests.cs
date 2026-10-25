@@ -168,12 +168,12 @@ public class WhereTests
     public void Unsupported_node_message_includes_the_expression_text()
     {
         var parameters = new Dictionary<string, object?>();
-        Expression<Func<Book, bool>> expression = book => book.Title!.Contains("x");
+        Expression<Func<Book, bool>> expression = book => book.Title!.Trim() == "x";
 
         var exception = Assert.Throws<NotSupportedException>(
             () => SqlTranslator.ToSql(expression.Body, parameters));
 
-        Assert.Contains("Contains", exception.Message);
+        Assert.Contains("Trim", exception.Message);
     }
 
     [Fact]
@@ -212,5 +212,29 @@ public class WhereTests
 
         Assert.Equal("([Title] LIKE @p0)", sql);
         Assert.Equal("%dune%", parameters["p0"]);
+    }
+
+    [Fact]
+    public void StartsWith_becomes_like_with_trailing_wildcard()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.Title!.StartsWith("du");
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([Title] LIKE @p0)", sql);
+        Assert.Equal("du%", parameters["p0"]);
+    }
+
+    [Fact]
+    public void EndsWith_becomes_like_with_leading_wildcard()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.Title!.EndsWith("ne");
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([Title] LIKE @p0)", sql);
+        Assert.Equal("%ne", parameters["p0"]);
     }
 }
