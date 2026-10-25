@@ -200,4 +200,17 @@ public class WhereTests
         Assert.Equal("([Title] LIKE @p0)", sql);
         Assert.Equal("%dune%", parameters["p0"]);
     }
+
+    [Fact]
+    public void Contains_with_a_captured_variable_uses_its_value()
+    {
+        var term = "dune";
+        Expression<Func<Book, bool>> predicate = b => b.Title!.Contains(term);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([Title] LIKE @p0)", sql);
+        Assert.Equal("%dune%", parameters["p0"]);
+    }
 }

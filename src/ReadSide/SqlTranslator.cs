@@ -83,7 +83,7 @@ internal static class SqlTranslator
             && call.Method.Name == "Contains")
         {
             var column = ToSql(call.Object!, parameters);
-            var value = ((ConstantExpression)call.Arguments[0]).Value;
+            var value = GetValue(call.Arguments[0]);
 
             var name = $"p{parameters.Count}";
             parameters[name] = $"%{value}%";
@@ -128,4 +128,14 @@ internal static class SqlTranslator
         ExpressionType.OrElse => "OR",
         _ => throw new NotSupportedException($"Cannot translate '{binary}' to SQL (operator: {binary.NodeType}).")
     };
+
+    private static object? GetValue(Expression expression)
+    {
+        if(expression is ConstantExpression constant)
+        {
+            return constant.Value;
+        }
+
+        return Expression.Lambda(expression).Compile().DynamicInvoke();
+    }
 }
