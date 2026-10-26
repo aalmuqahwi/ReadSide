@@ -38,6 +38,8 @@ var result = Query.From<Book>()
 - [x] `Where` with `==`, `!=`, `<`, `>`, `<=`, `>=`; several calls are joined with `AND`
 - [x] `&&`, `||`, `!` with correct grouping
 - [x] `IS NULL` / `IS NOT NULL`
+- [x] `Contains`, `StartsWith`, `EndsWith` on strings, translated to `LIKE` (special characters are escaped)
+- [x] `Contains` on a list or array, translated to `IN`
 - [x] Captured variables become parameters
 - [x] Every value is a parameter, never pasted into the SQL
 - [x] `OrderBy`, `OrderByDescending`, `ThenBy`, `ThenByDescending`
@@ -46,7 +48,6 @@ var result = Query.From<Book>()
 - [x] Immutable queries: each call returns a new one
 - [x] Clear errors for unsupported expressions
 - [ ] Pluggable dialects (PostgreSQL, MySQL, ...)
-- [ ] `Contains` / `StartsWith` / `EndsWith`, `IN`
 - [ ] Select into classes (`new Dto { ... }`)
 - [ ] Aggregates and `GroupBy`
 - [ ] Joins
@@ -59,7 +60,9 @@ var result = Query.From<Book>()
 
 - SQL Server syntax only
 - The table name is the class name plus `s`, with no override yet
-- No nested members (`b.Author.Name`), `LIKE`, aggregates, or joins
+- No nested members (`b.Author.Name`), aggregates, or joins
+- Only these method calls are translated: `Contains`, `StartsWith` and `EndsWith` on strings, and `Contains` on a list or array. Other methods throw a clear error.
+- `IN` lists are limited by SQL Server's maximum of about 2,100 parameters per statement
 - Window functions are not planned
 
 ## Design notes
