@@ -31,7 +31,7 @@ internal static class SqlTranslator
 
         if (node is BinaryExpression binary)
         {
-            if (binary.Right is ConstantExpression { Value: null })
+            if (IsNull(binary.Right))
             {
                 var column = ToSql(binary.Left, parameters);
 
@@ -119,7 +119,7 @@ internal static class SqlTranslator
                 names.Add($"@{name}");
             }
 
-            if(names.Count == 0)
+            if (names.Count == 0)
             {
                 // always false condition
                 return "(1 = 0)";
@@ -174,6 +174,21 @@ internal static class SqlTranslator
         }
 
         return Expression.Lambda(expression).Compile().DynamicInvoke();
+    }
+
+    private static bool IsNull(Expression expression)
+    {
+        if (expression is ConstantExpression constant)
+        {
+            return constant.Value is null;
+        }
+
+        if (expression is MemberExpression { Expression: not ParameterExpression } captured)
+        {
+            return GetValue(captured) is null;
+        }
+
+        return false;
     }
 
     private static Expression StripConversions(Expression expression)

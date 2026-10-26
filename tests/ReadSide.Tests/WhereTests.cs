@@ -117,6 +117,32 @@ public class WhereTests
     }
 
     [Fact]
+    public void Comparing_to_a_captured_null_becomes_is_null()
+    {
+        string? title = null;
+        Expression<Func<Book, bool>> predicate = b => b.Title == title;
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([Title] IS NULL)", sql);
+        Assert.Empty(parameters);
+    }
+
+    [Fact]
+    public void Comparing_to_a_captured_null_with_not_equal_becomes_is_not_null()
+    {
+        string? title = null;
+        Expression<Func<Book, bool>> predicate = b => b.Title != title;
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([Title] IS NOT NULL)", sql);
+        Assert.Empty(parameters);
+    }
+
+    [Fact]
     public void NotNull_becomes_is_not_null_operator()
     {
         var parameters = new Dictionary<string, object?>();
