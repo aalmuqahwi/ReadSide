@@ -277,4 +277,18 @@ public class WhereTests
         Assert.Equal(1, parameters["p0"]);
         Assert.Equal(2, parameters["p1"]);
     }
+
+    [Fact]
+    public void Empty_collection_becomes_a_condition_that_matches_nothing()
+    {
+        var ids = new List<int>();
+        Expression<Func<Book, bool>> predicate = b => ids.Contains(b.Id);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        // always false condition
+        Assert.Equal("(1 = 0)", sql);
+        Assert.Empty(parameters);
+    }
 }

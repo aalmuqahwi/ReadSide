@@ -119,6 +119,12 @@ internal static class SqlTranslator
                 names.Add($"@{name}");
             }
 
+            if(names.Count == 0)
+            {
+                // always false condition
+                return "(1 = 0)";
+            }
+
             return $"({column} IN ({string.Join(", ", names)}))";
         }
 
