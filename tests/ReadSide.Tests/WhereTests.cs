@@ -249,4 +249,32 @@ public class WhereTests
         Assert.Equal("([Title] LIKE @p0 ESCAPE '\\')", sql);
         Assert.Equal("%100\\%\\_\\[x]%", parameters["p0"]);
     }
+
+    [Fact]
+    public void List_Contains_becomes_in_with_one_parameter_per_value()
+    {
+        var ids = new List<int> { 1, 2 };
+        Expression<Func<Book, bool>> expression = book => ids.Contains(book.Id);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+
+        Assert.Equal("([Id] IN (@p0, @p1))", sql);
+        Assert.Equal(1, parameters["p0"]);
+        Assert.Equal(2, parameters["p1"]);
+    }
+
+    [Fact]
+    public void Array_Contains_becomes_in_with_one_parameter_per_value()
+    {
+        var ids = new[] { 1, 2 };
+        Expression<Func<Book, bool>> predicate = b => ids.Contains(b.Id);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([Id] IN (@p0, @p1))", sql);
+        Assert.Equal(1, parameters["p0"]);
+        Assert.Equal(2, parameters["p1"]);
+    }
 }

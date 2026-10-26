@@ -1,4 +1,4 @@
-using System;
+using System.Collections;
 using System.Linq.Expressions;
 
 namespace ReadSide;
@@ -98,6 +98,30 @@ internal static class SqlTranslator
             return $"({column} LIKE @{name} ESCAPE '\\')";
         }
 
+        if (node is MethodCallExpression inCall
+            && inCall.Method.Name == "Contains"
+            && inCall.Arguments.Count is 1 or 2)
+        {
+            // List: the collection is the Object, the item is Arguments[0].
+            // Array: static call, the collection is Arguments[0], the item is Arguments[1].
+            var (collection, item) = inCall.Object is not null
+                ? (inCall.Object, inCall.Arguments[0])
+                : (inCall.Arguments[0], inCall.Arguments[1]);
+
+            var values = (IEnumerable)GetValue(StripConversions(collection))!;
+            var column = ToSql(item, parameters);
+
+            var names = new List<string>();
+            foreach (var value in values)
+            {
+                var name = $"p{parameters.Count}";
+                parameters[name] = value;
+                names.Add($"@{name}");
+            }
+
+            return $"({column} IN ({string.Join(", ", names)}))";
+        }
+
         throw new NotSupportedException($"Cannot translate '{node}' to SQL (node type: {node.NodeType}).");
     }
 
@@ -144,6 +168,27 @@ internal static class SqlTranslator
         }
 
         return Expression.Lambda(expression).Compile().DynamicInvoke();
+    }
+
+    private static Expression StripConversions(Expression expression)
+    {
+        while (true)
+        {
+            if (expression is UnaryExpression
+                { NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked } unary)
+            {
+                expression = unary.Operand;
+            }
+            else if (expression is MethodCallExpression
+            { Method.Name: "op_Implicit", Arguments.Count: 1 } conversion)
+            {
+                expression = conversion.Arguments[0];
+            }
+            else
+            {
+                return expression;
+            }
+        }
     }
 
     private static string EscapeLike(string value) => value
