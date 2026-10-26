@@ -291,4 +291,31 @@ public class WhereTests
         Assert.Equal("(1 = 0)", sql);
         Assert.Empty(parameters);
     }
+
+    [Fact]
+    public void Negated_Contains_becomes_not_in()
+    {
+        var ids = new List<int> { 1, 2 };
+        Expression<Func<Book, bool>> predicate = b => !ids.Contains(b.Id);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("NOT ([Id] IN (@p0, @p1))", sql);
+    }
+
+    [Fact]
+    public void In_continues_parameter_numbering_after_other_conditions()
+    {
+        var ids = new List<int> { 5, 6 };
+        Expression<Func<Book, bool>> predicate = b => b.Id > 0 && ids.Contains(b.Id);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("(([Id] > @p0) AND ([Id] IN (@p1, @p2)))", sql);
+        Assert.Equal(0, parameters["p0"]);
+        Assert.Equal(5, parameters["p1"]);
+        Assert.Equal(6, parameters["p2"]);
+    }
 }
