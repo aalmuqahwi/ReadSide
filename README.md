@@ -1,4 +1,5 @@
 # ReadSide
+[![CI](https://github.com/aalmuqahwi/ReadSide/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/aalmuqahwi/ReadSide/actions/workflows/ci.yml)
 
 Typed, refactor-safe read side for CQRS. Work in progress.
 
@@ -7,7 +8,7 @@ Typed, refactor-safe read side for CQRS. Work in progress.
 🚧 A learning project, built to explore expression trees and SQL generation in C#. Pre-1.0: the API may change.
 
 - Targets SQL Server. Not published to NuGet yet.
-- The generated SQL is verified by tests that compare strings; it has not yet been run against a real database.
+- The generated SQL is verified by tests that compare strings, and has been checked by hand against SQL Server 2022 (in Docker). There are no automated database tests yet.
 
 ## Example
 
@@ -75,7 +76,7 @@ var result = Query.From<Book>()
 ## Try it
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/aalmuqahwi/ReadSide.git
 cd ReadSide
 dotnet test
 ```
