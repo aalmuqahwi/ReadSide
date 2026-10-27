@@ -91,7 +91,7 @@ public sealed class Query<T>
 
         var columns = _state.Columns is null
             ? "*"
-            : SqlTranslator.ToOperand(_state.Columns, parameters);
+            : SqlTranslator.ToColumnOrValue(_state.Columns, parameters);
 
         var sql = $"SELECT {columns} FROM {SqlTranslator.Quote(typeof(T).Name + "s")}";
 

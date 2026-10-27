@@ -39,7 +39,7 @@ internal static class SqlTranslator
         {
             if (IsNull(binary.Right))
             {
-                var column = ToOperand(binary.Left, parameters);
+                var column = ToColumnOrValue(binary.Left, parameters);
 
                 if (binary.NodeType == ExpressionType.Equal)
                     return $"({column} IS NULL)";
@@ -50,8 +50,8 @@ internal static class SqlTranslator
 
 
             var isLogical = binary.NodeType is ExpressionType.AndAlso or ExpressionType.OrElse;
-            var left = isLogical ? ToSql(binary.Left, parameters) : ToOperand(binary.Left, parameters);
-            var right = isLogical ? ToSql(binary.Right, parameters) : ToOperand(binary.Right, parameters);
+            var left = isLogical ? ToSql(binary.Left, parameters) : ToColumnOrValue(binary.Left, parameters);
+            var right = isLogical ? ToSql(binary.Right, parameters) : ToColumnOrValue(binary.Right, parameters);
             var op = GetOperator(binary);
 
             return $"({left} {op} {right})";
@@ -71,7 +71,7 @@ internal static class SqlTranslator
         {
             var columns = created.Arguments.Select((argument, index) =>
             {
-                var column = ToOperand(argument, parameters);
+                var column = ToColumnOrValue(argument, parameters);
                 var alias = created.Members?[index].Name;
 
                 var isPlainColumn = argument is MemberExpression { Expression: ParameterExpression } access
@@ -140,7 +140,7 @@ internal static class SqlTranslator
 
     public static string ToOrderBy(IEnumerable<(Expression Column, bool Descending)> clauses)
     {
-        var columns = clauses.Select(c => $"{ToOperand(c.Column, [])} {(c.Descending ? "DESC" : "ASC")}");
+        var columns = clauses.Select(c => $"{ToColumnOrValue(c.Column, [])} {(c.Descending ? "DESC" : "ASC")}");
         return string.Join(", ", columns);
     }
 
@@ -210,7 +210,7 @@ internal static class SqlTranslator
         return false;
     }
 
-    internal static string ToOperand(Expression node, Dictionary<string, object?> parameters)
+    internal static string ToColumnOrValue(Expression node, Dictionary<string, object?> parameters)
     {
         return IsColumn(node, out var column) 
             ? Quote(column.Member.Name) 
