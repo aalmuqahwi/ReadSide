@@ -174,4 +174,20 @@ public class QueryTests
 
         Assert.Equal("SELECT [Title] AS [BookTitle], [Id] FROM [Books]", result.Sql);
     }
+
+    [Fact]
+    public void Selecting_a_boolean_column_keeps_it_a_plain_column()
+    {
+        var result = Query.From<Book>().Select(b => b.IsAvailable).Build();
+
+        Assert.Equal("SELECT [IsAvailable] FROM [Books]", result.Sql);
+    }
+
+    [Fact]
+    public void Ordering_by_a_boolean_column_keeps_it_a_plain_column()
+    {
+        var result = Query.From<Book>().OrderBy(b => b.IsAvailable).Build();
+
+        Assert.Equal("SELECT * FROM [Books] ORDER BY [IsAvailable] ASC", result.Sql);
+    }
 }

@@ -71,7 +71,7 @@ internal static class SqlTranslator
         {
             var columns = created.Arguments.Select((argument, index) =>
             {
-                var column = ToSql(argument, parameters);
+                var column = ToOperand(argument, parameters);
                 var alias = created.Members?[index].Name;
 
                 var isPlainColumn = argument is MemberExpression { Expression: ParameterExpression } access
@@ -140,7 +140,7 @@ internal static class SqlTranslator
 
     public static string ToOrderBy(IEnumerable<(Expression Column, bool Descending)> clauses)
     {
-        var columns = clauses.Select(c => $"{ToSql(c.Column, [])} {(c.Descending ? "DESC" : "ASC")}");
+        var columns = clauses.Select(c => $"{ToOperand(c.Column, [])} {(c.Descending ? "DESC" : "ASC")}");
         return string.Join(", ", columns);
     }
 
@@ -210,7 +210,7 @@ internal static class SqlTranslator
         return false;
     }
 
-    private static string ToOperand(Expression node, Dictionary<string, object?> parameters)
+    internal static string ToOperand(Expression node, Dictionary<string, object?> parameters)
     {
         return IsColumn(node, out var column) 
             ? Quote(column.Member.Name) 
