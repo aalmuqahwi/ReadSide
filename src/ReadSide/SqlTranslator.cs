@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace ReadSide;
@@ -12,6 +13,11 @@ internal static class SqlTranslator
             var name = $"p{parameters.Count}";
             parameters[name] = constant.Value;
             return $"@{name}";
+        }
+
+        if (IsColumn(node, out var boolColumn)&& boolColumn.Type == typeof(bool))
+        {
+            return $"({Quote(boolColumn.Member.Name)} = 1)";
         }
 
         if (node is MemberExpression member)
@@ -33,7 +39,7 @@ internal static class SqlTranslator
         {
             if (IsNull(binary.Right))
             {
-                var column = ToSql(binary.Left, parameters);
+                var column = ToOperand(binary.Left, parameters);
 
                 if (binary.NodeType == ExpressionType.Equal)
                     return $"({column} IS NULL)";
@@ -43,8 +49,9 @@ internal static class SqlTranslator
             }
 
 
-            var left = ToSql(binary.Left, parameters);
-            var right = ToSql(binary.Right, parameters);
+            var isLogical = binary.NodeType is ExpressionType.AndAlso or ExpressionType.OrElse;
+            var left = isLogical ? ToSql(binary.Left, parameters) : ToOperand(binary.Left, parameters);
+            var right = isLogical ? ToSql(binary.Right, parameters) : ToOperand(binary.Right, parameters);
             var op = GetOperator(binary);
 
             return $"({left} {op} {right})";
@@ -176,6 +183,18 @@ internal static class SqlTranslator
         return Expression.Lambda(expression).Compile().DynamicInvoke();
     }
 
+    private static bool IsColumn(Expression node, [NotNullWhen(true)] out MemberExpression? column)
+    {
+        if (node is MemberExpression { Expression: ParameterExpression } member)
+        {
+            column = member;
+            return true;
+        }
+
+        column = null;
+        return false;
+    }
+
     private static bool IsNull(Expression expression)
     {
         if (expression is ConstantExpression constant)
@@ -189,6 +208,13 @@ internal static class SqlTranslator
         }
 
         return false;
+    }
+
+    private static string ToOperand(Expression node, Dictionary<string, object?> parameters)
+    {
+        return IsColumn(node, out var column) 
+            ? Quote(column.Member.Name) 
+            : ToSql(node, parameters);
     }
 
     private static Expression StripConversions(Expression expression)

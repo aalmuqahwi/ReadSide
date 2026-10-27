@@ -344,4 +344,28 @@ public class WhereTests
         Assert.Equal(5, parameters["p1"]);
         Assert.Equal(6, parameters["p2"]);
     }
+
+    [Fact]
+    public void Bare_boolean_column_becomes_equals_one()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.IsAvailable;
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([IsAvailable] = 1)", sql);
+        Assert.Empty(parameters);
+    }
+
+    [Fact]
+    public void Boolean_column_compared_to_a_value_stays_a_normal_comparison()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.IsAvailable == true;
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([IsAvailable] = @p0)", sql);
+        Assert.Equal(true, parameters["p0"]);
+    }
 }
