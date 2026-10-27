@@ -37,7 +37,8 @@ var result = Query.From<Book>()
 - [x] `Select`: one column or an anonymous type, with aliases (`new { BookTitle = b.Title }`)
 - [x] `Where` with `==`, `!=`, `<`, `>`, `<=`, `>=`; several calls are joined with `AND`
 - [x] `&&`, `||`, `!` with correct grouping
-- [x] `IS NULL` / `IS NOT NULL`
+- [x] `IS NULL` / `IS NOT NULL`, including a captured variable that is `null`
+- [x] Boolean columns: `Where(b => b.IsAvailable)` and `Where(b => !b.IsAvailable)`
 - [x] `Contains`, `StartsWith`, `EndsWith` on strings, translated to `LIKE` (special characters are escaped)
 - [x] `Contains` on a list or array, translated to `IN`
 - [x] Captured variables become parameters
