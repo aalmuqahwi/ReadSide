@@ -132,6 +132,14 @@ internal static class SqlTranslator
             return $"({column} IN ({string.Join(", ", names)}))";
         }
 
+        if (node is MethodCallExpression emptyCheck
+            && emptyCheck.Method.DeclaringType == typeof(string)
+            && emptyCheck.Method.Name == "IsNullOrEmpty")
+        {
+            var column = ToSql(emptyCheck.Arguments[0], parameters);
+            return $"({column} IS NULL OR {column} = '')";
+        }
+
         throw new NotSupportedException($"Cannot translate '{node}' to SQL (node type: {node.NodeType}).");
     }
 

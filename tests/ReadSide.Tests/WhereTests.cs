@@ -228,6 +228,30 @@ public class WhereTests
     }
 
     [Fact]
+    public void IsNullOrEmpty_becomes_is_null_or_equals_empty_string()
+    {
+        Expression<Func<Book, bool>> predicate = b => string.IsNullOrEmpty(b.Title);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([Title] IS NULL OR [Title] = '')", sql);
+        Assert.Empty(parameters);
+    }
+
+    [Fact]
+    public void Negated_IsNullOrEmpty_wraps_the_condition_in_not()
+    {
+        Expression<Func<Book, bool>> predicate = b => !string.IsNullOrEmpty(b.Title);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("NOT ([Title] IS NULL OR [Title] = '')", sql);
+        Assert.Empty(parameters);
+    }
+
+    [Fact]
     public void Contains_with_a_captured_variable_uses_its_value()
     {
         var term = "dune";
