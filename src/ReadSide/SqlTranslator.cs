@@ -6,8 +6,11 @@ namespace ReadSide;
 
 internal static class SqlTranslator
 {
+    // Branches are checked in order and the first match wins.
+    // Anything that matches none of them reaches the exception at the end.
     public static string ToSql(Expression node, Dictionary<string, object?> parameters)
     {
+        // A literal value like 5 or "dune": becomes a parameter.
         if (node is ConstantExpression constant)
         {
             var name = $"p{parameters.Count}";
@@ -15,6 +18,7 @@ internal static class SqlTranslator
             return $"@{name}";
         }
 
+        // A column of the lambda parameter, like b.Title. A bool column on its own is a condition: (Name = 1).
         if (IsColumn(node, out var columnMember))
         {
             return columnMember.Type == typeof(bool)
@@ -22,6 +26,7 @@ internal static class SqlTranslator
                 : Quote(columnMember.Member.Name);
         }
 
+        // A captured variable, like minId: evaluate it and make it a parameter.
         if (node is MemberExpression member)
         {
             var value = Expression.Lambda(member).Compile().DynamicInvoke();
@@ -32,6 +37,7 @@ internal static class SqlTranslator
             return $"@{paramName}";
         }
 
+        // Comparisons and AND/OR. Comparing to null becomes IS NULL / IS NOT NULL.
         if (node is BinaryExpression binary)
         {
             if (IsNull(binary.Right))
@@ -54,16 +60,21 @@ internal static class SqlTranslator
             return $"({left} {op} {right})";
         }
 
+        // !condition becomes NOT (...).
         if (node is UnaryExpression unary && unary.NodeType == ExpressionType.Not)
         {
             return $"NOT {ToSql(unary.Operand, parameters)}";
         }
 
+        // A type conversion the compiler adds on its own. For example, with `int? Rating`
+        // and `int minRating`, the lambda b.Rating == minRating really contains
+        // Convert(minRating) to int?. SQL doesn't need it, so skip it and translate what is inside.
         if (node is UnaryExpression { NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked } conversion)
         {
             return ToSql(conversion.Operand, parameters);
         }
 
+        // new { b.Title, b.Id } in Select: a column list, with AS when the name differs.
         if (node is NewExpression created)
         {
             var columns = created.Arguments.Select((argument, index) =>
@@ -82,6 +93,7 @@ internal static class SqlTranslator
             return string.Join(", ", columns);
         }
 
+        // string.Contains / StartsWith / EndsWith becomes LIKE, with %, _ and [ escaped.
         if (node is MethodCallExpression call
             && call.Method.DeclaringType == typeof(string)
             && call.Method.Name is "Contains" or "StartsWith" or "EndsWith")
@@ -102,6 +114,7 @@ internal static class SqlTranslator
             return $"({column} LIKE @{name} ESCAPE '\\')";
         }
 
+        // Contains on a list or an array becomes IN (...). An empty list becomes (1 = 0).
         if (node is MethodCallExpression inCall
             && inCall.Method.Name == "Contains"
             && inCall.Arguments.Count is 1 or 2)
@@ -132,6 +145,7 @@ internal static class SqlTranslator
             return $"({column} IN ({string.Join(", ", names)}))";
         }
 
+        // string.IsNullOrEmpty(x) becomes (x IS NULL OR x = '').
         if (node is MethodCallExpression emptyCheck
             && emptyCheck.Method.DeclaringType == typeof(string)
             && emptyCheck.Method.Name == "IsNullOrEmpty")
