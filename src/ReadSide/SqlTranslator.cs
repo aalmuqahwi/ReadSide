@@ -15,18 +15,15 @@ internal static class SqlTranslator
             return $"@{name}";
         }
 
-        if (IsColumn(node, out var boolColumn)&& boolColumn.Type == typeof(bool))
+        if (IsColumn(node, out var columnMember))
         {
-            return $"({Quote(boolColumn.Member.Name)} = 1)";
+            return columnMember.Type == typeof(bool)
+                ? $"({Quote(columnMember.Member.Name)} = 1)"
+                : Quote(columnMember.Member.Name);
         }
 
         if (node is MemberExpression member)
         {
-            if (member.Expression is ParameterExpression)
-            {
-                return Quote(member.Member.Name);
-            }
-
             var value = Expression.Lambda(member).Compile().DynamicInvoke();
 
             var paramName = $"p{parameters.Count}";
@@ -74,8 +71,8 @@ internal static class SqlTranslator
                 var column = ToColumnOrValue(argument, parameters);
                 var alias = created.Members?[index].Name;
 
-                var isPlainColumn = argument is MemberExpression { Expression: ParameterExpression } access
-                                    && access.Member.Name == alias;
+                var isPlainColumn = IsColumn(argument, out var access)
+                    && access.Member.Name == alias;
 
                 return alias is null || isPlainColumn
                     ? column
@@ -212,8 +209,8 @@ internal static class SqlTranslator
 
     internal static string ToColumnOrValue(Expression node, Dictionary<string, object?> parameters)
     {
-        return IsColumn(node, out var column) 
-            ? Quote(column.Member.Name) 
+        return IsColumn(node, out var column)
+            ? Quote(column.Member.Name)
             : ToSql(node, parameters);
     }
 
