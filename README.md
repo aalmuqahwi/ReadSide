@@ -42,6 +42,7 @@ var result = Query.From<Book>()
 - [x] Boolean columns: `Where(b => b.IsAvailable)` and `Where(b => !b.IsAvailable)`
 - [x] `Contains`, `StartsWith`, `EndsWith` on strings, translated to `LIKE` (special characters are escaped)
 - [x] `Contains` on a list or array, translated to `IN`
+- [x] `string.IsNullOrEmpty`, translated to `IS NULL OR = ''`
 - [x] Captured variables become parameters
 - [x] Every value is a parameter, never pasted into the SQL
 - [x] `OrderBy`, `OrderByDescending`, `ThenBy`, `ThenByDescending`
