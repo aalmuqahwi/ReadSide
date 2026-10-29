@@ -392,4 +392,41 @@ public class WhereTests
         Assert.Equal("([IsAvailable] = @p0)", sql);
         Assert.Equal(true, parameters["p0"]);
     }
+
+    [Fact]
+    public void HasValue_becomes_is_not_null()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.ReturnedAt.HasValue;
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([ReturnedAt] IS NOT NULL)", sql);
+        Assert.Empty(parameters);
+    }
+
+    [Fact]
+    public void Value_of_a_nullable_column_is_the_column_itself()
+    {
+        var since = new DateTime(2026, 1, 1);
+        Expression<Func<Book, bool>> predicate = b => b.ReturnedAt!.Value > since;
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([ReturnedAt] > @p0)", sql);
+        Assert.Equal(since, parameters["p0"]);
+    }
+
+        [Fact]
+    public void Negated_HasValue_wraps_the_condition_in_not()
+    {
+        Expression<Func<Book, bool>> predicate = b => !b.ReturnedAt.HasValue;
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("NOT ([ReturnedAt] IS NOT NULL)", sql);
+        Assert.Empty(parameters);
+    }
 }

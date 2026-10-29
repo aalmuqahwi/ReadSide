@@ -26,6 +26,22 @@ internal static class SqlTranslator
                 : Quote(columnMember.Member.Name);
         }
 
+        // .HasValue on a nullable column becomes IS NOT NULL
+        if(node is MemberExpression {Member.Name: "HasValue", Expression: {} owner}
+            && Nullable.GetUnderlyingType(owner.Type) is not null
+            && IsColumn(owner, out var nullableColumn))
+        {
+            return $"({Quote(nullableColumn.Member.Name)} IS NOT NULL)";
+        }
+
+         // .Value on a nullable column is just the column: SQL has no separate "value".
+        if (node is MemberExpression { Member.Name: "Value", Expression: { } valueOwner }
+            && Nullable.GetUnderlyingType(valueOwner.Type) is not null
+            && IsColumn(valueOwner, out var valueColumn))
+        {
+            return Quote(valueColumn.Member.Name);
+        }
+
         // A captured variable, like minId: evaluate it and make it a parameter.
         if (node is MemberExpression member)
         {
