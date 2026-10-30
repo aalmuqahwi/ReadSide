@@ -13,7 +13,7 @@ public class WhereTests
         var parameters = new Dictionary<string, object?>();
         Expression<Func<Book, bool>> expression = book => book.Id == 3;
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("([Id] = @p0)", sql);
         Assert.Equal(3, parameters["p0"]);
@@ -25,7 +25,7 @@ public class WhereTests
         var parameters = new Dictionary<string, object?>();
         Expression<Func<Book, bool>> expression = book => book.Id != 3;
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("([Id] <> @p0)", sql);
         Assert.Equal(3, parameters["p0"]);
@@ -37,7 +37,7 @@ public class WhereTests
         var parameters = new Dictionary<string, object?>();
         Expression<Func<Book, bool>> expression = book => book.Id > 3;
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("([Id] > @p0)", sql);
         Assert.Equal(3, parameters["p0"]);
@@ -49,7 +49,7 @@ public class WhereTests
         var parameters = new Dictionary<string, object?>();
         Expression<Func<Book, bool>> expression = book => book.Id >= 3;
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("([Id] >= @p0)", sql);
         Assert.Equal(3, parameters["p0"]);
@@ -61,7 +61,7 @@ public class WhereTests
         var parameters = new Dictionary<string, object?>();
         Expression<Func<Book, bool>> expression = book => book.Id < 3;
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("([Id] < @p0)", sql);
         Assert.Equal(3, parameters["p0"]);
@@ -73,7 +73,7 @@ public class WhereTests
         var parameters = new Dictionary<string, object?>();
         Expression<Func<Book, bool>> expression = book => book.Id <= 3;
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("([Id] <= @p0)", sql);
         Assert.Equal(3, parameters["p0"]);
@@ -85,7 +85,7 @@ public class WhereTests
         var parameters = new Dictionary<string, object?>();
         Expression<Func<Book, bool>> expression = book => book.Id == 3 && book.Title == "test";
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("(([Id] = @p0) AND ([Title] = @p1))", sql);
         Assert.Equal(3, parameters["p0"]);
@@ -98,7 +98,7 @@ public class WhereTests
         var parameters = new Dictionary<string, object?>();
         Expression<Func<Book, bool>> expression = book => !(book.Id == 3);
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("NOT ([Id] = @p0)", sql);
         Assert.Equal(3, parameters["p0"]);
@@ -110,7 +110,7 @@ public class WhereTests
         var parameters = new Dictionary<string, object?>();
         Expression<Func<Book, bool>> expression = book => book.Title == null;
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("([Title] IS NULL)", sql);
         Assert.Empty(parameters);
@@ -123,7 +123,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => b.Title == title;
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("([Title] IS NULL)", sql);
         Assert.Empty(parameters);
@@ -136,7 +136,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => b.Title != title;
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("([Title] IS NOT NULL)", sql);
         Assert.Empty(parameters);
@@ -148,7 +148,7 @@ public class WhereTests
         var parameters = new Dictionary<string, object?>();
         Expression<Func<Book, bool>> expression = book => book.Title != null;
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("([Title] IS NOT NULL)", sql);
         Assert.Empty(parameters);
@@ -160,7 +160,7 @@ public class WhereTests
         var parameters = new Dictionary<string, object?>();
         Expression<Func<Book, bool>> expression = book => (book.Id == 1 || book.Id == 2) && book.Id > 3;
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("((([Id] = @p0) OR ([Id] = @p1)) AND ([Id] > @p2))", sql);
         Assert.Equal(1, parameters["p0"]);
@@ -175,7 +175,7 @@ public class WhereTests
         string title = "C# Expressions";
         Expression<Func<Book, bool>> expression = book => book.Title == title;
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("([Title] = @p0)", sql);
         Assert.Equal("C# Expressions", parameters["p0"]);
@@ -187,7 +187,7 @@ public class WhereTests
         var parameters = new Dictionary<string, object?>();
         Expression<Func<Book, bool>> expression = book => book.Id + 1 == 3;
 
-        Assert.Throws<NotSupportedException>(() => SqlTranslator.ToSql(expression.Body, parameters));
+        Assert.Throws<NotSupportedException>(() => TestSql.ToSql(expression.Body, parameters));
     }
 
     [Fact]
@@ -197,7 +197,7 @@ public class WhereTests
         Expression<Func<Book, bool>> expression = book => book.Title!.Trim() == "x";
 
         var exception = Assert.Throws<NotSupportedException>(
-            () => SqlTranslator.ToSql(expression.Body, parameters));
+            () => TestSql.ToSql(expression.Body, parameters));
 
         Assert.Contains("Trim", exception.Message);
     }
@@ -209,7 +209,7 @@ public class WhereTests
         long big = 5;
         Expression<Func<Book, bool>> expression = book => book.Id == big;
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("([Id] = @p0)", sql);
         Assert.Equal(5L, parameters["p0"]);
@@ -221,7 +221,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => b.Title!.Contains("dune");
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("([Title] LIKE @p0 ESCAPE '\\')", sql);
         Assert.Equal("%dune%", parameters["p0"]);
@@ -233,7 +233,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => string.IsNullOrEmpty(b.Title);
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("([Title] IS NULL OR [Title] = '')", sql);
         Assert.Empty(parameters);
@@ -245,7 +245,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => !string.IsNullOrEmpty(b.Title);
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("NOT ([Title] IS NULL OR [Title] = '')", sql);
         Assert.Empty(parameters);
@@ -258,7 +258,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => b.Title!.Contains(term);
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("([Title] LIKE @p0 ESCAPE '\\')", sql);
         Assert.Equal("%dune%", parameters["p0"]);
@@ -270,7 +270,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => b.Title!.StartsWith("du");
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("([Title] LIKE @p0 ESCAPE '\\')", sql);
         Assert.Equal("du%", parameters["p0"]);
@@ -282,7 +282,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => b.Title!.EndsWith("ne");
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("([Title] LIKE @p0 ESCAPE '\\')", sql);
         Assert.Equal("%ne", parameters["p0"]);
@@ -294,7 +294,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => b.Title!.Contains("100%_[x]");
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("([Title] LIKE @p0 ESCAPE '\\')", sql);
         Assert.Equal("%100\\%\\_\\[x]%", parameters["p0"]);
@@ -307,7 +307,7 @@ public class WhereTests
         Expression<Func<Book, bool>> expression = book => ids.Contains(book.Id);
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("([Id] IN (@p0, @p1))", sql);
         Assert.Equal(1, parameters["p0"]);
@@ -321,7 +321,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => ids.Contains(b.Id);
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("([Id] IN (@p0, @p1))", sql);
         Assert.Equal(1, parameters["p0"]);
@@ -335,7 +335,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => ids.Contains(b.Id);
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         // always false condition
         Assert.Equal("(1 = 0)", sql);
@@ -349,7 +349,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => !ids.Contains(b.Id);
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("NOT ([Id] IN (@p0, @p1))", sql);
     }
@@ -361,7 +361,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => b.Id > 0 && ids.Contains(b.Id);
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("(([Id] > @p0) AND ([Id] IN (@p1, @p2)))", sql);
         Assert.Equal(0, parameters["p0"]);
@@ -375,7 +375,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => b.IsAvailable;
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("([IsAvailable] = 1)", sql);
         Assert.Empty(parameters);
@@ -387,7 +387,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => b.IsAvailable == true;
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("([IsAvailable] = @p0)", sql);
         Assert.Equal(true, parameters["p0"]);
@@ -399,7 +399,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => b.ReturnedAt.HasValue;
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("([ReturnedAt] IS NOT NULL)", sql);
         Assert.Empty(parameters);
@@ -412,7 +412,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => b.ReturnedAt!.Value > since;
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("([ReturnedAt] > @p0)", sql);
         Assert.Equal(since, parameters["p0"]);
@@ -424,7 +424,7 @@ public class WhereTests
         Expression<Func<Book, bool>> predicate = b => !b.ReturnedAt.HasValue;
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(predicate.Body, parameters);
+        var sql = TestSql.ToSql(predicate.Body, parameters);
 
         Assert.Equal("NOT ([ReturnedAt] IS NOT NULL)", sql);
         Assert.Empty(parameters);

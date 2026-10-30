@@ -7,7 +7,7 @@ namespace ReadSide.Tests;
 public class SelectTests
 {
     private static string Translate<T>(Expression<Func<Book, T>> expression, Dictionary<string, object?> parameters)
-        => SqlTranslator.ToSql(expression.Body, parameters);
+        => TestSql.ToSql(expression.Body, parameters);
 
     [Fact]
     public void Single_column_becomes_column_name()
@@ -15,7 +15,7 @@ public class SelectTests
         var parameters = new Dictionary<string, object?>();
         Expression<Func<Book, string?>> expression = book => book.Title;
 
-        var sql = SqlTranslator.ToSql(expression.Body, parameters);
+        var sql = TestSql.ToSql(expression.Body, parameters);
 
         Assert.Equal("[Title]", sql);
         Assert.Empty(parameters);

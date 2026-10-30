@@ -17,7 +17,7 @@ public class OrderByTests
             (Body(book => book.Id), true)
         };
 
-        var sql = SqlTranslator.ToOrderBy(clauses);
+        var sql = TestSql.ToOrderBy(clauses);
 
         Assert.Equal("[Title] ASC, [Id] DESC", sql);
     }
