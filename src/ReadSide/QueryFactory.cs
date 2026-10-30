@@ -21,5 +21,5 @@ public class QueryFactory
     /// </summary>
     /// <typeparam name="T">The entity the query reads from.</typeparam>
     /// <returns>An empty query on <typeparamref name="T"/>.</returns>
-    public Query<T> From<T>() => Query.From<T>();
+    public Query<T> From<T>() => new(_options);
 }

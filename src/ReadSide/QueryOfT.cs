@@ -7,13 +7,15 @@ namespace ReadSide;
 public sealed class Query<T>
 {
     private sealed record State(
+        ReadSideOptions Options,
         IReadOnlyList<Expression> Conditions,
         Expression? Columns,
         IReadOnlyList<(Expression Column, bool Descending)> Orders,
         int? Skip,
         int? Take)
     {
-        public static readonly State Empty = new(
+        public static State Empty(ReadSideOptions options) => new(
+            Options: options,
             Conditions: [],
             Columns: null,
             Orders: [],
@@ -23,8 +25,13 @@ public sealed class Query<T>
 
     private readonly State _state;
 
-    internal Query() : this(State.Empty)
+    internal Query() : this(new ReadSideOptions())
     {
+    }
+
+    internal Query(ReadSideOptions options) : this(State.Empty(options))
+    {
+        
     }
 
     private Query(State state)
@@ -93,7 +100,14 @@ public sealed class Query<T>
             ? "*"
             : SqlTranslator.ToColumnOrValue(_state.Columns, parameters);
 
-        var sql = $"SELECT {columns} FROM {SqlTranslator.Quote(typeof(T).Name + "s")}";
+        var entity = _state.Options.Find(typeof(T));
+        var table = SqlTranslator.Quote(entity?.Table ?? typeof(T).Name + "s");
+
+        var from = entity?.Schema is { } schema
+            ? $"{SqlTranslator.Quote(schema)}.{table}"
+            : table;
+
+        var sql = $"SELECT {columns} FROM {from}";
 
         if (_state.Conditions.Count > 0)
         {
