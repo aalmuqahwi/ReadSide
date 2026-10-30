@@ -29,8 +29,8 @@ internal sealed class SqlTranslator
         if (IsColumn(node, out var columnMember))
         {
             return columnMember.Type == typeof(bool)
-                ? $"({Quote(columnMember.Member.Name)} = 1)"
-                : Quote(columnMember.Member.Name);
+                ? $"({Quote(ColumnName(columnMember))} = 1)"
+                : Quote(ColumnName(columnMember));
         }
 
         // .HasValue on a nullable column becomes IS NOT NULL
@@ -38,7 +38,7 @@ internal sealed class SqlTranslator
             && Nullable.GetUnderlyingType(owner.Type) is not null
             && IsColumn(owner, out var nullableColumn))
         {
-            return $"({Quote(nullableColumn.Member.Name)} IS NOT NULL)";
+            return $"({Quote(ColumnName(nullableColumn))} IS NOT NULL)";
         }
 
         // .Value on a nullable column is just the column: SQL has no separate "value".
@@ -46,7 +46,7 @@ internal sealed class SqlTranslator
             && Nullable.GetUnderlyingType(valueOwner.Type) is not null
             && IsColumn(valueOwner, out var valueColumn))
         {
-            return Quote(valueColumn.Member.Name);
+            return Quote(ColumnName(valueColumn));
         }
 
         // A captured variable, like minId: evaluate it and make it a parameter.
@@ -237,12 +237,18 @@ internal sealed class SqlTranslator
         return false;
     }
 
+    private string ColumnName(MemberExpression column)
+    {
+        var entity = _options.Find(column.Expression!.Type);
+        return entity?.Columns.GetValueOrDefault(column.Member.Name) ?? column.Member.Name;
+    }
+
     private string ToSelectItem(Expression expression, string? alias, Dictionary<string, object?> parameters)
     {
         var column = ToColumnOrValue(expression, parameters);
 
         var isPlainColumn = IsColumn(expression, out var access)
-            && access.Member.Name == alias;
+            && ColumnName(access) == alias;
 
         return alias is null || isPlainColumn
             ? column
@@ -267,7 +273,7 @@ internal sealed class SqlTranslator
     internal string ToColumnOrValue(Expression node, Dictionary<string, object?> parameters)
     {
         return IsColumn(node, out var column)
-            ? Quote(column.Member.Name)
+            ? Quote(ColumnName(column))
             : ToSql(node, parameters);
     }
 
