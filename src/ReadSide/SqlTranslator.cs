@@ -4,11 +4,18 @@ using System.Linq.Expressions;
 
 namespace ReadSide;
 
-internal static class SqlTranslator
+internal sealed class SqlTranslator
 {
+    private readonly ReadSideOptions _options;
+
+    public SqlTranslator(ReadSideOptions options)
+    {
+        _options = options;
+    }
+
     // Branches are checked in order and the first match wins.
     // Anything that matches none of them reaches the exception at the end.
-    public static string ToSql(Expression node, Dictionary<string, object?> parameters)
+    public string ToSql(Expression node, Dictionary<string, object?> parameters)
     {
         // A literal value like 5 or "dune": becomes a parameter.
         if (node is ConstantExpression constant)
@@ -27,14 +34,14 @@ internal static class SqlTranslator
         }
 
         // .HasValue on a nullable column becomes IS NOT NULL
-        if(node is MemberExpression {Member.Name: "HasValue", Expression: {} owner}
+        if (node is MemberExpression { Member.Name: "HasValue", Expression: { } owner }
             && Nullable.GetUnderlyingType(owner.Type) is not null
             && IsColumn(owner, out var nullableColumn))
         {
             return $"({Quote(nullableColumn.Member.Name)} IS NOT NULL)";
         }
 
-         // .Value on a nullable column is just the column: SQL has no separate "value".
+        // .Value on a nullable column is just the column: SQL has no separate "value".
         if (node is MemberExpression { Member.Name: "Value", Expression: { } valueOwner }
             && Nullable.GetUnderlyingType(valueOwner.Type) is not null
             && IsColumn(valueOwner, out var valueColumn))
@@ -100,7 +107,7 @@ internal static class SqlTranslator
         }
 
         // new Dto { Id = b.Id, Name = b.Title } in Select: the same column list, with the names taken from the bindings.
-        if(node is MemberInitExpression init)
+        if (node is MemberInitExpression init)
         {
             var columns = init.Bindings.Select(binding => binding is MemberAssignment assignment
                 ? ToSelectItem(assignment.Expression, assignment.Member.Name, parameters)
@@ -173,7 +180,7 @@ internal static class SqlTranslator
         throw new NotSupportedException($"Cannot translate '{node}' to SQL (node type: {node.NodeType}).");
     }
 
-    public static string ToOrderBy(IEnumerable<(Expression Column, bool Descending)> clauses)
+    public string ToOrderBy(IEnumerable<(Expression Column, bool Descending)> clauses)
     {
         var columns = clauses.Select(c => $"{ToColumnOrValue(c.Column, [])} {(c.Descending ? "DESC" : "ASC")}");
         return string.Join(", ", columns);
@@ -230,7 +237,7 @@ internal static class SqlTranslator
         return false;
     }
 
-    private static string ToSelectItem(Expression expression, string? alias, Dictionary<string, object?> parameters)
+    private string ToSelectItem(Expression expression, string? alias, Dictionary<string, object?> parameters)
     {
         var column = ToColumnOrValue(expression, parameters);
 
@@ -257,7 +264,7 @@ internal static class SqlTranslator
         return false;
     }
 
-    internal static string ToColumnOrValue(Expression node, Dictionary<string, object?> parameters)
+    internal string ToColumnOrValue(Expression node, Dictionary<string, object?> parameters)
     {
         return IsColumn(node, out var column)
             ? Quote(column.Member.Name)
