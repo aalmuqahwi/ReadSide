@@ -94,17 +94,17 @@ internal static class SqlTranslator
         if (node is NewExpression created)
         {
             var columns = created.Arguments.Select((argument, index) =>
-            {
-                var column = ToColumnOrValue(argument, parameters);
-                var alias = created.Members?[index].Name;
+                ToSelectItem(argument, created.Members?[index].Name, parameters));
 
-                var isPlainColumn = IsColumn(argument, out var access)
-                    && access.Member.Name == alias;
+            return string.Join(", ", columns);
+        }
 
-                return alias is null || isPlainColumn
-                    ? column
-                    : $"{column} AS {Quote(alias)}";
-            });
+        // new Dto { Id = b.Id, Name = b.Title } in Select: the same column list, with the names taken from the bindings.
+        if(node is MemberInitExpression init)
+        {
+            var columns = init.Bindings.Select(binding => binding is MemberAssignment assignment
+                ? ToSelectItem(assignment.Expression, assignment.Member.Name, parameters)
+                : throw new NotSupportedException($"Cannot translate '{binding}' to SQL (binding type: {binding.BindingType})."));
 
             return string.Join(", ", columns);
         }
@@ -228,6 +228,18 @@ internal static class SqlTranslator
 
         column = null;
         return false;
+    }
+
+    private static string ToSelectItem(Expression expression, string? alias, Dictionary<string, object?> parameters)
+    {
+        var column = ToColumnOrValue(expression, parameters);
+
+        var isPlainColumn = IsColumn(expression, out var access)
+            && access.Member.Name == alias;
+
+        return alias is null || isPlainColumn
+            ? column
+            : $"{column} AS {Quote(alias)}";
     }
 
     private static bool IsNull(Expression expression)

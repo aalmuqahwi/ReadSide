@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 using ReadSide.Tests.Models;
 
 namespace ReadSide.Tests;
@@ -54,6 +56,18 @@ public class QueryTests
             .Build();
 
         Assert.Equal("SELECT [Title], [Id] FROM [Books]", result.Sql);
+    }
+
+    [Fact]
+    public void Object_initializer_becomes_a_column_list_with_aliases()
+    {
+        Expression<Func<Book, BookSummary>> select = b => new BookSummary { Id = b.Id, Name = b.Title };
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = SqlTranslator.ToSql(select.Body, parameters);
+
+        Assert.Equal("[Id], [Title] AS [Name]", sql);
+        Assert.Empty(parameters);
     }
 
     [Fact]
@@ -173,6 +187,16 @@ public class QueryTests
             .Build();
 
         Assert.Equal("SELECT [Title] AS [BookTitle], [Id] FROM [Books]", result.Sql);
+    }
+
+    [Fact]
+    public void Select_into_a_class_builds_the_column_list_with_aliases()
+    {
+        var result = Query.From<Book>()
+            .Select(book => new BookSummary { Id = book.Id, Name = book.Title })
+            .Build();
+
+        Assert.Equal("SELECT [Id], [Title] AS [Name] FROM [Books]", result.Sql);
     }
 
     [Fact]
