@@ -98,7 +98,7 @@ public sealed class Query<T>
         var translator = new SqlTranslator(_state.Options);
 
         var columns = _state.Columns is null
-            ? "*"
+            ? translator.ToDefaultColumns(typeof(T))
             : translator.ToColumnOrValue(_state.Columns, parameters);
 
         var entity = _state.Options.Find(typeof(T));

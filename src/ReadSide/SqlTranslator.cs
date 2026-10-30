@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace ReadSide;
 
@@ -275,6 +276,32 @@ internal sealed class SqlTranslator
         return IsColumn(node, out var column)
             ? Quote(ColumnName(column))
             : ToSql(node, parameters);
+    }
+
+    internal string ToDefaultColumns(Type entity)
+    {
+        var map = _options.Find(entity);
+
+        if (map is null || map.Columns.Count == 0)
+        {
+            return "*";
+        }
+
+        var properties = entity
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(property => property.CanRead)
+            .OrderBy(property => property.MetadataToken);
+
+        var columns = properties.Select(property =>
+        {
+            var column = map.Columns.GetValueOrDefault(property.Name) ?? property.Name;
+
+            return column == property.Name
+                ? Quote(column)
+                : $"{Quote(column)} AS {Quote(property.Name)}";
+        });
+
+        return string.Join(", ", columns);
     }
 
     private static Expression StripConversions(Expression expression)
