@@ -64,7 +64,7 @@ public class QueryTests
         Expression<Func<Book, BookSummary>> select = b => new BookSummary { Id = b.Id, Name = b.Title };
         var parameters = new Dictionary<string, object?>();
 
-        var sql = SqlTranslator.ToSql(select.Body, parameters);
+        var sql = TestSql.ToSql(select.Body, parameters);
 
         Assert.Equal("[Id], [Title] AS [Name]", sql);
         Assert.Empty(parameters);
