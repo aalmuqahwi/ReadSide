@@ -25,25 +25,17 @@ public class QueryFactoryTests
     }
 
     [Fact]
-    public void Mapped_table_and_schema_are_used_in_from()
-    {
-        var options = new ReadSideOptions().Add(new BookMapping());
-        var queries = new QueryFactory(options);
-
-        var result = queries.From<Book>().Build();
-
-        Assert.Equal("SELECT * FROM [dbo].[BookListtbl]", result.Sql);
-    }
-
-    [Fact]
     public void Mapped_column_name_is_used_in_where()
     {
         var options = new ReadSideOptions().Add(new BookMapping());
         var queries = new QueryFactory(options);
 
-        var result = queries.From<Book>().Where(b => b.Title == "Dune").Build();
+        var result = queries.From<Book>()
+            .Where(b => b.Title == "Dune")
+            .Select(b => b.Id)
+            .Build();
 
-        Assert.Equal("SELECT * FROM [dbo].[BookListtbl] WHERE ([Title_Txt] = @p0)", result.Sql);
+        Assert.Equal("SELECT [Id] FROM [dbo].[BookListtbl] WHERE ([Title_Txt] = @p0)", result.Sql);
     }
 
     [Fact]
@@ -55,5 +47,18 @@ public class QueryFactoryTests
         var result = queries.From<Book>().Select(b => new { b.Title, b.Id }).Build();
 
         Assert.Equal("SELECT [Title_Txt] AS [Title], [Id] FROM [dbo].[BookListtbl]", result.Sql);
+    }
+
+    [Fact]
+    public void Without_select_a_mapped_column_keeps_the_property_name()
+    {
+        var options = new ReadSideOptions().Add(new BookMapping());
+        var queries = new QueryFactory(options);
+
+        var result = queries.From<Book>().Build();
+
+        Assert.Equal(
+            "SELECT [Id], [Title_Txt] AS [Title], [PublishedAt], [IsAvailable], [ReturnedAt] FROM [dbo].[BookListtbl]",
+            result.Sql);
     }
 }
