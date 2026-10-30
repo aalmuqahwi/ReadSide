@@ -50,8 +50,8 @@ var result = Query.From<Book>()
 - [x] Identifier quoting (`[Order]`)
 - [x] Immutable queries: each call returns a new one
 - [x] Clear errors for unsupported expressions
+- [x] Select into classes (`new Dto { ... }`)
 - [ ] Pluggable dialects (PostgreSQL, MySQL, ...)
-- [ ] Select into classes (`new Dto { ... }`)
 - [ ] Aggregates and `GroupBy`
 - [ ] Joins
 - [ ] Table and column mapping configuration
