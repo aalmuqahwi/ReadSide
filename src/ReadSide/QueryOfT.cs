@@ -95,10 +95,11 @@ public sealed class Query<T>
     public SqlResult Build()
     {
         var parameters = new Dictionary<string, object?>();
+        var translator = new SqlTranslator(_state.Options);
 
         var columns = _state.Columns is null
             ? "*"
-            : SqlTranslator.ToColumnOrValue(_state.Columns, parameters);
+            : translator.ToColumnOrValue(_state.Columns, parameters);
 
         var entity = _state.Options.Find(typeof(T));
         var table = SqlTranslator.Quote(entity?.Table ?? typeof(T).Name + "s");
@@ -111,13 +112,13 @@ public sealed class Query<T>
 
         if (_state.Conditions.Count > 0)
         {
-            var conditions = _state.Conditions.Select(c => SqlTranslator.ToSql(c, parameters));
+            var conditions = _state.Conditions.Select(c => translator.ToSql(c, parameters));
             sql += " WHERE " + string.Join(" AND ", conditions);
         }
 
         if (_state.Orders.Count > 0)
         {
-            sql += " ORDER BY " + SqlTranslator.ToOrderBy(_state.Orders);
+            sql += " ORDER BY " + translator.ToOrderBy(_state.Orders);
         }
 
         if (_state.Take is not null)
