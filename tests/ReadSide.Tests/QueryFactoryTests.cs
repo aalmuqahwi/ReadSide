@@ -14,6 +14,14 @@ public class QueryFactoryTests
         }
     }
 
+    private class BookTableOnlyMapping : IEntityMapping<Book>
+    {
+        public void Configure(EntityMappingBuilder<Book> entity)
+        {
+            entity.Table("BookListtbl").Schema("dbo");
+        }
+    }
+
     [Fact]
     public void Query_factory_without_mappings_uses_the_convention()
     {
@@ -60,5 +68,16 @@ public class QueryFactoryTests
         Assert.Equal(
             "SELECT [Id], [Title_Txt] AS [Title], [PublishedAt], [IsAvailable], [ReturnedAt] FROM [dbo].[BookListtbl]",
             result.Sql);
+    }
+
+    [Fact]
+    public void Without_select_a_table_only_mapping_keeps_star()
+    {
+        var options = new ReadSideOptions().Add(new BookTableOnlyMapping());
+        var queries = new QueryFactory(options);
+
+        var result = queries.From<Book>().Build();
+
+        Assert.Equal("SELECT * FROM [dbo].[BookListtbl]", result.Sql);
     }
 }
