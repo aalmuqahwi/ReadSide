@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 namespace ReadSide;
 
 /// <summary>
@@ -8,6 +10,7 @@ public class EntityMappingBuilder<T>
 {
     private string? _table;
     private string? _schema;
+    private readonly Dictionary<string, string> _columns = [];
 
     /// <summary>
     /// Sets the table name.
@@ -31,5 +34,24 @@ public class EntityMappingBuilder<T>
         return this;
     }
 
-    internal EntityMap ToEntityMap() => new(_table, _schema);
+    /// <summary>
+    /// Sets the database column name for one property.
+    /// </summary>
+    /// <typeparam name="TProperty">The type of the property.</typeparam>
+    /// <param name="property">A lambda that picks the property, such as <c>b => b.Title</c>.</param>
+    /// <param name="name">The column name in the database.</param>
+    /// <returns>The same builder, so calls can be chained.</returns>
+    /// <exception cref="ArgumentException">The lambda is not a simple property of the entity.</exception>
+    public EntityMappingBuilder<T> Column<TProperty>(Expression<Func<T, TProperty>> property, string name)
+    {
+        if (property.Body is not MemberExpression { Expression: ParameterExpression } member)
+        {
+            throw new ArgumentException("Pick a property of the entity, such as b => b.Title.", nameof(property));
+        }
+
+        _columns[member.Member.Name] = name;
+        return this;
+    }
+
+    internal EntityMap ToEntityMap() => new(_table, _schema, new Dictionary<string, string>(_columns));
 }
