@@ -60,6 +60,14 @@ var result = queries.From<Book>()
 
 The results keep the property names: `Title` is returned as `[Title_Txt] AS [Title]`. Without a `Select`, an entity with mapped columns lists its public properties instead of using `*`, so the names still match.
 
+A property that is computed in C# and has no column can be left out with `Ignore`:
+
+```csharp
+entity.Ignore(b => b.FullTitle);
+```
+
+It is not listed when columns are selected for you, and using it in `Where`, `Select` or `OrderBy` throws a clear error.
+
 With several entities, chain the calls:
 
 ```csharp
@@ -94,6 +102,7 @@ Planned: registering all mappings of an assembly at once, and a dependency-injec
 - [x] Clear errors for unsupported expressions
 - [x] Select into classes (`new Dto { ... }`)
 - [x] Table, schema and column mapping (`IEntityMapping<T>`)
+- [x] Ignore a property in a mapping (`entity.Ignore(b => b.Prop)`)
 - [ ] Pluggable dialects (PostgreSQL, MySQL, ...)
 - [ ] Aggregates and `GroupBy`
 - [ ] Joins
@@ -104,7 +113,7 @@ Planned: registering all mappings of an assembly at once, and a dependency-injec
 ## Limitations
 
 - SQL Server syntax only
-- Mapping covers table, schema and column names only. There is no way yet to mark a property as "not a column", so when columns are mapped and no `Select` is used, every public property is listed as a column
+- Mapping covers table, schema, column names and ignored properties. Views, query filters and value converters are not supported yet
 - No nested members (`b.Author.Name`), aggregates, or joins
 - Only these method calls are translated: `Contains`, `StartsWith` and `EndsWith` on strings, and `Contains` on a list or array. Other methods throw a clear error.
 - `IN` lists are limited by SQL Server's maximum of about 2,100 parameters per statement
