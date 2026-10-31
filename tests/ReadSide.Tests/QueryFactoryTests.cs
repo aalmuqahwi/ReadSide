@@ -22,6 +22,15 @@ public class QueryFactoryTests
         }
     }
 
+    private class ArticleMapping : IEntityMapping<Article>
+    {
+        public void Configure(EntityMappingBuilder<Article> entity)
+        {
+            entity.Column(a => a.Headline, "Headline_Txt");
+            entity.Ignore(a => a.Label);
+        }
+    }
+
     [Fact]
     public void Query_factory_without_mappings_uses_the_convention()
     {
@@ -79,5 +88,16 @@ public class QueryFactoryTests
         var result = queries.From<Book>().Build();
 
         Assert.Equal("SELECT * FROM [dbo].[BookListtbl]", result.Sql);
+    }
+
+    [Fact]
+    public void An_ignored_property_is_not_in_the_default_column_list()
+    {
+        var options = new ReadSideOptions().Add(new ArticleMapping());
+        var queries = new QueryFactory(options);
+
+        var result = queries.From<Article>().Build();
+
+        Assert.Equal("SELECT [Id], [Headline_Txt] AS [Headline] FROM [Articles]", result.Sql);
     }
 }

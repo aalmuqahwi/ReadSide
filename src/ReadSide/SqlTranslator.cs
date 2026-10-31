@@ -289,7 +289,7 @@ internal sealed class SqlTranslator
 
         var properties = entity
             .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(property => property.CanRead)
+            .Where(property => property.CanRead && !map.Ignored.Contains(property.Name))
             .OrderBy(property => property.MetadataToken);
 
         var columns = properties.Select(property =>
