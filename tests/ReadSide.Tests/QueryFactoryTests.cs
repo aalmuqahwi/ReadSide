@@ -100,4 +100,40 @@ public class QueryFactoryTests
 
         Assert.Equal("SELECT [Id], [Headline_Txt] AS [Headline] FROM [Articles]", result.Sql);
     }
+
+    [Fact]
+    public void An_ignored_property_cannot_be_used_in_where()
+    {
+        var options = new ReadSideOptions().Add(new ArticleMapping());
+        var queries = new QueryFactory(options);
+
+        var query = queries.From<Article>().Where(a => a.Label == "x");
+
+        var error = Assert.Throws<NotSupportedException>(() => query.Build());
+        Assert.Contains("Label", error.Message);
+    }
+
+    [Fact]
+    public void An_ignored_property_cannot_be_used_in_select()
+    {
+        var options = new ReadSideOptions().Add(new ArticleMapping());
+        var queries = new QueryFactory(options);
+
+        var query = queries.From<Article>().Select(a => a.Label);
+
+        var error = Assert.Throws<NotSupportedException>(() => query.Build());
+        Assert.Contains("Label", error.Message);
+    }
+
+    [Fact]
+    public void An_ignored_property_cannot_be_used_in_order_by()
+    {
+        var options = new ReadSideOptions().Add(new ArticleMapping());
+        var queries = new QueryFactory(options);
+
+        var query = queries.From<Article>().OrderBy(a => a.Label);
+
+        var error = Assert.Throws<NotSupportedException>(() => query.Build());
+        Assert.Contains("Label", error.Message);
+    }
 }

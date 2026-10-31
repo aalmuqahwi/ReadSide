@@ -240,8 +240,13 @@ internal sealed class SqlTranslator
 
     private string ColumnName(MemberExpression column)
     {
-        var entity = _options.Find(column.Expression!.Type);
-        return entity?.Columns.GetValueOrDefault(column.Member.Name) ?? column.Member.Name;
+        var entityType = column.Expression!.Type;
+        var entity = _options.Find(entityType);
+
+        return entity is not null && entity.Ignored.Contains(column.Member.Name)
+            ? throw new NotSupportedException(
+                $"'{column.Member.Name}' is ignored in the mapping of {entityType.Name}, so it cannot be used in a query.")
+            : entity?.Columns.GetValueOrDefault(column.Member.Name) ?? column.Member.Name;
     }
 
     private string ToSelectItem(Expression expression, string? alias, Dictionary<string, object?> parameters)
