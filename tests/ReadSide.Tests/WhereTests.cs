@@ -418,7 +418,7 @@ public class WhereTests
         Assert.Equal(since, parameters["p0"]);
     }
 
-        [Fact]
+    [Fact]
     public void Negated_HasValue_wraps_the_condition_in_not()
     {
         Expression<Func<Book, bool>> predicate = b => !b.ReturnedAt.HasValue;
@@ -428,5 +428,57 @@ public class WhereTests
 
         Assert.Equal("NOT ([ReturnedAt] IS NOT NULL)", sql);
         Assert.Empty(parameters);
+    }
+
+    [Fact]
+    public void DateTime_Now_becomes_database_get_date()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.PublishedAt == DateTime.Now;
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = TestSql.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([PublishedAt] = GETDATE())", sql);
+        Assert.Empty(parameters);
+    }
+
+    [Fact]
+    public void Captured_DateTime_Now_variable_becomes_parameter()
+    {
+        var parameters = new Dictionary<string, object?>();
+        DateTime now = DateTime.Now;
+        Expression<Func<Book, bool>> expression = book => book.PublishedAt < now;
+
+        var sql = TestSql.ToSql(expression.Body, parameters);
+
+        Assert.Equal("([PublishedAt] < @p0)", sql);
+        Assert.Single(parameters);
+        Assert.Equal(now, parameters["p0"]);
+    }
+
+    [Fact]
+    public void DateTime_UtcNow_becomes_database_get_utc_date()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.PublishedAt == DateTime.UtcNow;
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = TestSql.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([PublishedAt] = GETUTCDATE())", sql);
+        Assert.Empty(parameters);
+    }
+
+    [Fact]
+    public void Captured_DateTime_UtcNow_variable_becomes_parameter()
+    {
+        var parameters = new Dictionary<string, object?>();
+        DateTime now = DateTime.UtcNow;
+        Expression<Func<Book, bool>> expression = book => book.PublishedAt < now;
+
+        var sql = TestSql.ToSql(expression.Body, parameters);
+
+        Assert.Equal("([PublishedAt] < @p0)", sql);
+        Assert.Single(parameters);
+        Assert.Equal(now, parameters["p0"]);
     }
 }

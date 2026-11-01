@@ -50,6 +50,16 @@ internal sealed class SqlTranslator
             return Quote(ColumnName(valueColumn));
         }
 
+        // DateTime.Now / DateTime.UtcNow: the database clock, not a client value
+        if(node is MemberExpression { Expression: null } clock
+            && clock.Member.DeclaringType == typeof(DateTime)
+            && clock.Member.Name is "Now" or "UtcNow")
+        {
+            return clock.Member.Name == "Now"
+                ? "GETDATE()"
+                : "GETUTCDATE()";
+        }
+
         // A captured variable, like minId: evaluate it and make it a parameter.
         if (node is MemberExpression member)
         {
