@@ -507,4 +507,64 @@ public class WhereTests
         Assert.Equal(5, parameters["p0"]);
         Assert.Equal(-30d, parameters["p1"]);
     }
+
+    [Fact]
+    public void DateTime_Now_AddHours_becomes_DATEADD()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.PublishedAt > DateTime.Now.AddHours(-2);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = TestSql.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([PublishedAt] > DATEADD(hour, @p0, GETDATE()))", sql);
+        Assert.Equal(-2d, parameters["p0"]);
+    }
+
+    [Fact]
+    public void DateTime_Now_AddMinutes_becomes_DATEADD()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.PublishedAt > DateTime.Now.AddMinutes(-15);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = TestSql.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([PublishedAt] > DATEADD(minute, @p0, GETDATE()))", sql);
+        Assert.Equal(-15d, parameters["p0"]);
+    }
+
+    [Fact]
+    public void DateTime_Now_AddSeconds_becomes_DATEADD()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.PublishedAt > DateTime.Now.AddSeconds(-30);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = TestSql.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([PublishedAt] > DATEADD(second, @p0, GETDATE()))", sql);
+        Assert.Equal(-30d, parameters["p0"]);
+    }
+
+    [Fact]
+    public void DateTime_Now_AddMonths_becomes_DATEADD()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.PublishedAt > DateTime.Now.AddMonths(-1);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = TestSql.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([PublishedAt] > DATEADD(month, @p0, GETDATE()))", sql);
+        Assert.Equal(-1, parameters["p0"]);
+    }
+
+    [Fact]
+    public void DateTime_Now_AddYears_becomes_DATEADD()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.PublishedAt > DateTime.Now.AddYears(-1);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = TestSql.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([PublishedAt] > DATEADD(year, @p0, GETDATE()))", sql);
+        Assert.Equal(-1, parameters["p0"]);
+    }
 }

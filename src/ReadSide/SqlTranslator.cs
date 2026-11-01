@@ -51,7 +51,7 @@ internal sealed class SqlTranslator
         }
 
         // DateTime.Now / DateTime.UtcNow: the database clock, not a client value
-        if(node is MemberExpression { Expression: null } clock
+        if (node is MemberExpression { Expression: null } clock
             && clock.Member.DeclaringType == typeof(DateTime)
             && clock.Member.Name is "Now" or "UtcNow")
         {
@@ -189,17 +189,17 @@ internal sealed class SqlTranslator
         }
 
         // .AddDays becomes DATEADD
-        if(node is MethodCallExpression dateCall
+        if (node is MethodCallExpression dateCall
             && dateCall.Method.DeclaringType == typeof(DateTime)
-            && dateCall.Method.Name is "AddDays")
+            && TryGetDatePart(dateCall.Method.Name, out var datePart))
         {
             var column = ToSql(dateCall.Object!, parameters);
             var value = GetValue(dateCall.Arguments[0]);
 
-             var name = $"p{parameters.Count}";
-             parameters[name] = value;
+            var name = $"p{parameters.Count}";
+            parameters[name] = value;
 
-            return $"DATEADD(day, @{name}, {column})";
+            return $"DATEADD({datePart}, @{name}, {column})";
         }
 
         throw new NotSupportedException($"Cannot translate '{node}' to SQL (node type: {node.NodeType}).");
@@ -260,6 +260,22 @@ internal sealed class SqlTranslator
 
         column = null;
         return false;
+    }
+
+    private static bool TryGetDatePart(string methodName, [NotNullWhen(true)] out string? datePart)
+    {
+        datePart = methodName switch
+        {
+            "AddDays" => "day",
+            "AddHours" => "hour",
+            "AddMinutes" => "minute",
+            "AddSeconds" => "second",
+            "AddMonths" => "month",
+            "AddYears" => "year",
+            _ => null
+        };
+
+        return datePart is not null;
     }
 
     private string ColumnName(MemberExpression column)
