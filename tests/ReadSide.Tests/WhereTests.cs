@@ -481,4 +481,30 @@ public class WhereTests
         Assert.Single(parameters);
         Assert.Equal(now, parameters["p0"]);
     }
+
+    [Fact]
+    public void DateTime_Now_AddDays_becomes_DATEADD()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.PublishedAt > DateTime.Now.AddDays(-30);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = TestSql.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([PublishedAt] > DATEADD(day, @p0, GETDATE()))", sql);
+        Assert.Equal(-30d, parameters["p0"]);
+    }
+
+    [Fact]
+    public void DATEADD_parameter_gets_the_next_free_name()
+    {
+        Expression<Func<Book, bool>> predicate =
+            b => b.Id > 5 && b.PublishedAt > DateTime.Now.AddDays(-30);
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = TestSql.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("(([Id] > @p0) AND ([PublishedAt] > DATEADD(day, @p1, GETDATE())))", sql);
+        Assert.Equal(5, parameters["p0"]);
+        Assert.Equal(-30d, parameters["p1"]);
+    }
 }

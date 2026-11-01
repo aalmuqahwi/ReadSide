@@ -188,6 +188,20 @@ internal sealed class SqlTranslator
             return $"({column} IS NULL OR {column} = '')";
         }
 
+        // .AddDays becomes DATEADD
+        if(node is MethodCallExpression dateCall
+            && dateCall.Method.DeclaringType == typeof(DateTime)
+            && dateCall.Method.Name is "AddDays")
+        {
+            var column = ToSql(dateCall.Object!, parameters);
+            var value = GetValue(dateCall.Arguments[0]);
+
+             var name = $"p{parameters.Count}";
+             parameters[name] = value;
+
+            return $"DATEADD(day, @{name}, {column})";
+        }
+
         throw new NotSupportedException($"Cannot translate '{node}' to SQL (node type: {node.NodeType}).");
     }
 
