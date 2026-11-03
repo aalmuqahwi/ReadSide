@@ -214,4 +214,19 @@ public class QueryTests
 
         Assert.Equal("SELECT * FROM [Books] ORDER BY [IsAvailable] ASC", result.Sql);
     }
+
+    [Fact]
+    public void Order_by_parameters_get_their_own_names()
+    {
+        var result = Query.From<Book>()
+            .Where(book => book.Id > 5)
+            .OrderBy(book => book.PublishedAt.AddDays(1))
+            .Build();
+
+        Assert.Equal(
+            "SELECT * FROM [Books] WHERE ([Id] > @p0) ORDER BY DATEADD(day, @p1, [PublishedAt]) ASC",
+            result.Sql);
+        Assert.Equal(5, result.Parameters["p0"]);
+        Assert.Equal(1d, result.Parameters["p1"]);
+    }
 }

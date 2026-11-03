@@ -8,5 +8,5 @@ internal static class TestSql
         => new SqlTranslator(new ReadSideOptions()).ToSql(node, parameters);
 
     public static string ToOrderBy(IEnumerable<(Expression Column, bool Descending)> clauses)
-        => new SqlTranslator(new ReadSideOptions()).ToOrderBy(clauses);
+        => new SqlTranslator(new ReadSideOptions()).ToOrderBy(clauses, new Dictionary<string, object?>());
 }

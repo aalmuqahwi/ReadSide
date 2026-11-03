@@ -118,7 +118,7 @@ public sealed class Query<T>
 
         if (_state.Orders.Count > 0)
         {
-            sql += " ORDER BY " + translator.ToOrderBy(_state.Orders);
+            sql += " ORDER BY " + translator.ToOrderBy(_state.Orders, parameters);
         }
 
         if (_state.Take is not null)

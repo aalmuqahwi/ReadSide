@@ -205,9 +205,9 @@ internal sealed class SqlTranslator
         throw new NotSupportedException($"Cannot translate '{node}' to SQL (node type: {node.NodeType}).");
     }
 
-    public string ToOrderBy(IEnumerable<(Expression Column, bool Descending)> clauses)
+    public string ToOrderBy(IEnumerable<(Expression Column, bool Descending)> clauses, Dictionary<string, object?> parameters)
     {
-        var columns = clauses.Select(c => $"{ToColumnOrValue(c.Column, [])} {(c.Descending ? "DESC" : "ASC")}");
+        var columns = clauses.Select(c => $"{ToColumnOrValue(c.Column, parameters)} {(c.Descending ? "DESC" : "ASC")}");
         return string.Join(", ", columns);
     }
 
