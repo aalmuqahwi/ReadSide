@@ -207,7 +207,7 @@ internal sealed class SqlTranslator
 
     public string ToOrderBy(IEnumerable<(Expression Column, bool Descending)> clauses, Dictionary<string, object?> parameters)
     {
-        var columns = clauses.Select(c => $"{ToColumnOrValue(c.Column, parameters)} {(c.Descending ? "DESC" : "ASC")}");
+        var columns = clauses.Select(c => $"{ToSortKey(c.Column, parameters)} {(c.Descending ? "DESC" : "ASC")}");
         return string.Join(", ", columns);
     }
 
@@ -375,4 +375,15 @@ internal sealed class SqlTranslator
         .Replace("%", "\\%")
         .Replace("_", "\\_")
         .Replace("[", "\\[");
+
+    private string ToSortKey(Expression node, Dictionary<string, object?> parameters)
+    {
+        // new { a, b } is a list of keys, and one ASC or DESC cannot cover a list.
+        if (node is NewExpression or MemberInitExpression)
+        {
+            throw new NotSupportedException($"Cannot order by '{node}'. Use ThenBy to sort by more than one column.");
+        }
+        
+        return ToColumnOrValue(node, parameters);
+    }
 }

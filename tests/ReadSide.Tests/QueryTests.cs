@@ -116,6 +116,28 @@ public class QueryTests
     }
 
     [Fact]
+    public void Order_by_a_column_list_tells_the_user_to_use_ThenBy()
+    {
+        var error = Assert.Throws<NotSupportedException>(() =>
+            Query.From<Book>()
+                .OrderByDescending(book => new { book.Title, book.Id })
+                .Build());
+
+        Assert.Contains("ThenBy", error.Message);
+    }
+
+    [Fact]
+    public void Order_by_an_object_initializer_tells_the_user_to_use_ThenBy()
+    {
+        var error = Assert.Throws<NotSupportedException>(() =>
+            Query.From<Book>()
+                .OrderBy(book => new BookSummary { Id = book.Id, Name = book.Title })
+                .Build());
+
+        Assert.Contains("ThenBy", error.Message);
+    }
+    
+    [Fact]
     public void Skip_and_take_add_offset_fetch_after_order_by()
     {
         var result = Query.From<Book>()
