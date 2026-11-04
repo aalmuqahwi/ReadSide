@@ -118,6 +118,7 @@ Planned: registering all mappings of an assembly at once, and a dependency-injec
 - Only these method calls are translated: `Contains`, `StartsWith` and `EndsWith` on strings, and `Contains` on a list or array. Other methods throw a clear error.
 - `IN` lists are limited by SQL Server's maximum of about 2,100 parameters per statement
 - Window functions are not planned
+- `ORDER BY` accepts a column, `.Value` on a nullable column, or a `DateTime` Add method on a column. To sort by several columns, chain `ThenBy`. Sorting by a condition is not supported yet.
 
 ## Design notes
 
