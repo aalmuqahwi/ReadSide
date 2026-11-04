@@ -18,4 +18,48 @@ public class ArithmeticTests
         Assert.Equal(1, parameters["p0"]);
         Assert.Equal(5, parameters["p1"]);
     }
+
+    [Fact]
+    public void Subtraction_becomes_minus()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.Id - 1 > 5;
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = TestSql.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("(([Id] - @p0) > @p1)", sql);
+    }
+
+    [Fact]
+    public void Multiplication_becomes_times()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.Id * 2 > 5;
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = TestSql.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("(([Id] * @p0) > @p1)", sql);
+    }
+
+    [Fact]
+    public void Division_becomes_slash()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.Id / 2 > 5;
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = TestSql.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("(([Id] / @p0) > @p1)", sql);
+    }
+
+    [Fact]
+    public void Modulo_becomes_percent()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.Id % 2 == 0;
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = TestSql.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("(([Id] % @p0) = @p1)", sql);
+    }
 }

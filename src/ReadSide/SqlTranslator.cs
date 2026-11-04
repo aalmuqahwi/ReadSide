@@ -238,6 +238,10 @@ internal sealed class SqlTranslator
         ExpressionType.AndAlso => "AND",
         ExpressionType.OrElse => "OR",
         ExpressionType.Add => "+",
+        ExpressionType.Subtract => "-",
+        ExpressionType.Multiply => "*",
+        ExpressionType.Divide => "/",
+        ExpressionType.Modulo => "%",
         _ => throw new NotSupportedException($"Cannot translate '{binary}' to SQL (operator: {binary.NodeType}).")
     };
 
