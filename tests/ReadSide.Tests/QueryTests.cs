@@ -136,7 +136,81 @@ public class QueryTests
 
         Assert.Contains("ThenBy", error.Message);
     }
-    
+
+    [Fact]
+    public void Order_by_a_condition_is_rejected()
+    {
+        var error = Assert.Throws<NotSupportedException>(() =>
+            Query.From<Book>()
+                .OrderBy(book => book.Title == "x")
+                .Build());
+
+        Assert.Contains("Cannot order by", error.Message);
+    }
+
+    [Fact]
+    public void Order_by_HasValue_is_rejected()
+    {
+        var error = Assert.Throws<NotSupportedException>(() =>
+            Query.From<Book>().OrderBy(book => book.ReturnedAt.HasValue).Build());
+
+        Assert.Contains("Cannot order by", error.Message);
+    }
+
+    [Fact]
+    public void Order_by_a_negated_column_is_rejected()
+    {
+        var error = Assert.Throws<NotSupportedException>(() =>
+            Query.From<Book>().OrderBy(book => !book.IsAvailable).Build());
+
+        Assert.Contains("Cannot order by", error.Message);
+    }
+
+    [Fact]
+    public void Order_by_IsNullOrEmpty_is_rejected()
+    {
+        var error = Assert.Throws<NotSupportedException>(() =>
+            Query.From<Book>().OrderBy(book => string.IsNullOrEmpty(book.Title)).Build());
+
+        Assert.Contains("Cannot order by", error.Message);
+    }
+
+    [Fact]
+    public void Order_by_a_constant_is_rejected()
+    {
+        var error = Assert.Throws<NotSupportedException>(() =>
+            Query.From<Book>().OrderBy(book => 1).Build());
+
+        Assert.Contains("Cannot order by", error.Message);
+    }
+
+    [Fact]
+    public void Order_by_a_captured_variable_is_rejected()
+    {
+        var id = 1;
+
+        var error = Assert.Throws<NotSupportedException>(() =>
+            Query.From<Book>().OrderBy(book => id).Build());
+
+        Assert.Contains("Cannot order by", error.Message);
+    }
+
+    [Fact]
+    public void Order_by_a_bool_column_stays_a_plain_column()
+    {
+        var result = Query.From<Book>().OrderBy(book => (object)book.IsAvailable).Build();
+
+        Assert.Equal("SELECT * FROM [Books] ORDER BY [IsAvailable] ASC", result.Sql);
+    }
+
+    [Fact]
+    public void Order_by_Value_of_a_nullable_column_is_the_column()
+    {
+        var result = Query.From<Book>().OrderBy(book => book.ReturnedAt!.Value).Build();
+
+        Assert.Equal("SELECT * FROM [Books] ORDER BY [ReturnedAt] ASC", result.Sql);
+    }
+
     [Fact]
     public void Skip_and_take_add_offset_fetch_after_order_by()
     {

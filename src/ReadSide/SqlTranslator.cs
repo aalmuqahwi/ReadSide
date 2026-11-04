@@ -383,7 +383,17 @@ internal sealed class SqlTranslator
         {
             throw new NotSupportedException($"Cannot order by '{node}'. Use ThenBy to sort by more than one column.");
         }
-        
-        return ToColumnOrValue(node, parameters);
+
+        var key = StripConversions(node);
+
+        var isSortable = IsColumn(key, out _)
+            || (key is MemberExpression { Member.Name: "Value", Expression: { } owner } && IsColumn(owner, out _))
+            || (key is MethodCallExpression { Method: var method }
+                && method.DeclaringType == typeof(DateTime)
+                && TryGetDatePart(method.Name, out _));
+
+        return isSortable
+            ? ToColumnOrValue(key, parameters)
+            : throw new NotSupportedException($"Cannot order by '{node}'. Use a column or a DateTime Add method.");
     }
 }
