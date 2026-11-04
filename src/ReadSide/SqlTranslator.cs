@@ -237,6 +237,7 @@ internal sealed class SqlTranslator
         ExpressionType.LessThanOrEqual => "<=",
         ExpressionType.AndAlso => "AND",
         ExpressionType.OrElse => "OR",
+        ExpressionType.Add => "+",
         _ => throw new NotSupportedException($"Cannot translate '{binary}' to SQL (operator: {binary.NodeType}).")
     };
 

@@ -185,9 +185,10 @@ public class WhereTests
     public void Unsupported_operator_throws_not_supported()
     {
         var parameters = new Dictionary<string, object?>();
-        Expression<Func<Book, bool>> expression = book => book.Id + 1 == 3;
+        Expression<Func<Book, bool>> expression = book => book.Id << 1 == 3;
 
-        Assert.Throws<NotSupportedException>(() => TestSql.ToSql(expression.Body, parameters));
+        var error = Assert.Throws<NotSupportedException>(() => TestSql.ToSql(expression.Body, parameters));
+        Assert.Contains("LeftShift", error.Message);
     }
 
     [Fact]
