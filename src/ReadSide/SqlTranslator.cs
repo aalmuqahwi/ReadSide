@@ -225,8 +225,17 @@ internal sealed class SqlTranslator
         return $"OFFSET @{skipName} ROWS FETCH NEXT @{takeName} ROWS ONLY";
     }
 
+    // Wraps a name in square brackets so SQL Server treats it as one name.
+    // A closing bracket inside the name is doubled.
+    //   "Title"    → [Title]
+    //   "My]Col"   → [My]]Col]
     internal static string Quote(string name) => $"[{name.Replace("]", "]]")}]";
 
+    // The SQL operator for a binary node. Anything not listed fails.
+    //   Equal       → "="        GreaterThanOrEqual → ">="
+    //   AndAlso     → "AND"      Add                → "+"
+    //   Modulo      → "%"
+    //   LeftShift   → throws "Cannot translate '...' to SQL (operator: LeftShift)."
     private static string GetOperator(BinaryExpression binary) => binary.NodeType switch
     {
         ExpressionType.Equal => "=",
@@ -245,6 +254,12 @@ internal sealed class SqlTranslator
         _ => throw new NotSupportedException($"Cannot translate '{binary}' to SQL (operator: {binary.NodeType}).")
     };
 
+    // The actual value of an expression that does not involve the lambda parameter.
+    // A constant is returned as it is. Anything else is compiled and run.
+    //   5                      → 5
+    //   minId (captured)       → the current value of minId
+    //   DateTime.Now           → the current client time
+    //   b.Title                → fails: it needs b, which does not exist here
     private static object? GetValue(Expression expression)
     {
         if (expression is ConstantExpression constant)
@@ -255,6 +270,12 @@ internal sealed class SqlTranslator
         return Expression.Lambda(expression).Compile().DynamicInvoke();
     }
 
+    // Is this node a column of the entity, like b.Title?
+    // Yes only when it is a member access whose owner is the lambda parameter itself.
+    //   b.Title                → true  (column = b.Title)
+    //   b.ReturnedAt.Value     → false (the owner is b.ReturnedAt, not b)
+    //   minId (captured)       → false
+    //   5                      → false
     private static bool IsColumn(Expression node, [NotNullWhen(true)] out MemberExpression? column)
     {
         if (node is MemberExpression { Expression: ParameterExpression } member)
@@ -267,6 +288,10 @@ internal sealed class SqlTranslator
         return false;
     }
 
+    // Turns a DateTime method name into the unit DATEADD expects.
+    //   "AddDays"    → true, datePart = "day"
+    //   "AddMonths"  → true, datePart = "month"
+    //   "ToString"   → false
     private static bool TryGetDatePart(string methodName, [NotNullWhen(true)] out string? datePart)
     {
         datePart = methodName switch
@@ -283,6 +308,9 @@ internal sealed class SqlTranslator
         return datePart is not null;
     }
 
+    //   Title  (mapped to Title_Txt)       → "Title_Txt"
+    //   Id     (not mapped)                → "Id"
+    //   Label  (marked with Ignore)        → throws "'Label' is ignored in the mapping of Article..."
     private string ColumnName(MemberExpression column)
     {
         var entityType = column.Expression!.Type;
@@ -294,6 +322,12 @@ internal sealed class SqlTranslator
             : entity?.Columns.GetValueOrDefault(column.Member.Name) ?? column.Member.Name;
     }
 
+    // One item of a SELECT list: the value, plus AS when the name must change.
+    //   (b.Title, "Title")                  → [Title]
+    //   (b.Title, "Name")                   → [Title] AS [Name]
+    //   (b.Title, "Title"), Title mapped    → [Title_Txt] AS [Title]
+    //   (b.Id * 2, "Double")                → ([Id] * @p0) AS [Double]
+    //   (b.Title, null)                     → [Title]
     private string ToSelectItem(Expression expression, string? alias, Dictionary<string, object?> parameters)
     {
         var column = ToColumnOrValue(expression, parameters);
@@ -306,6 +340,11 @@ internal sealed class SqlTranslator
             : $"{column} AS {Quote(alias)}";
     }
 
+    // Is this the value null, written as null or as a captured variable that holds null?
+    //   null (constant)             → true
+    //   string? x = null; x         → true
+    //   5                           → false
+    //   b.Title                     → false
     private static bool IsNull(Expression expression)
     {
         if (expression is ConstantExpression constant)
@@ -321,6 +360,12 @@ internal sealed class SqlTranslator
         return false;
     }
 
+    // A column becomes its quoted name; anything else is translated by ToSql.
+    // A bool column stays [IsAvailable] here, without "= 1".
+    //   b.Title        → [Title]
+    //   5              → @p0
+    //   b.Id * 2       → ([Id] * @p0)
+    //   b.IsAvailable  → [IsAvailable]
     internal string ToColumnOrValue(Expression node, Dictionary<string, object?> parameters)
     {
         return IsColumn(node, out var column)
@@ -328,6 +373,11 @@ internal sealed class SqlTranslator
             : ToSql(node, parameters);
     }
 
+    // The column list for a query with no Select.
+    // No column renames in the mapping → "*". Otherwise every readable property, in declaration order,
+    // skipping ignored ones, with AS when the column name differs from the property name.
+    //   no mapping                       → *
+    //   Title mapped to Title_Txt        → [Id], [Title_Txt] AS [Title], [PublishedAt], ...
     internal string ToDefaultColumns(Type entity)
     {
         var map = _options.Find(entity);
@@ -354,6 +404,12 @@ internal sealed class SqlTranslator
         return string.Join(", ", columns);
     }
 
+    // Removes the wrappers the compiler adds: Convert (also checked) and implicit-conversion calls.
+    // Repeats until nothing is left to remove.
+    //   (object)b.IsAvailable          → b.IsAvailable
+    //   Convert(Convert(x))            → x
+    //   op_Implicit(x)                 → x
+    //   b.Title                        → b.Title (unchanged)
     private static Expression StripConversions(Expression expression)
     {
         while (true)
@@ -375,12 +431,24 @@ internal sealed class SqlTranslator
         }
     }
 
+    // Makes the special characters of LIKE ordinary, so "50%" matches a literal 50%.
+    // The backslash is the escape character (see ESCAPE '\' in the query).
+    //   "50%"    → "50\%"
+    //   "a_b"    → "a\_b"
+    //   "[x]"    → "\[x]"
+    //   "a\b"    → "a\\b"
     private static string EscapeLike(string value) => value
         .Replace("\\", "\\\\")
         .Replace("%", "\\%")
         .Replace("_", "\\_")
         .Replace("[", "\\[");
 
+    // Checks that one ORDER BY key is something SQL Server can sort by, then translates it.
+    //   b.Title                      → [Title]
+    //   b.ReturnedAt.Value           → [ReturnedAt]
+    //   b.PublishedAt.AddDays(1)     → DATEADD(day, @p0, [PublishedAt])
+    //   new { b.Title, b.Id }        → throws "...Use ThenBy..."
+    //   b.Title == "x"               → throws "Cannot order by..."
     private string ToSortKey(Expression node, Dictionary<string, object?> parameters)
     {
         // new { a, b } is a list of keys, and one ASC or DESC cannot cover a list.
