@@ -62,4 +62,15 @@ public class ArithmeticTests
 
         Assert.Equal("(([Id] % @p0) = @p1)", sql);
     }
+
+    [Fact]
+    public void Arithmetic_in_select_keeps_the_alias()
+    {
+        var result = Query.From<Book>()
+            .Select(book => new { Double = book.Id * 2 })
+            .Build();
+
+        Assert.Equal("SELECT ([Id] * @p0) AS [Double] FROM [Books]", result.Sql);
+        Assert.Equal(2, result.Parameters["p0"]);
+    }
 }
