@@ -61,7 +61,7 @@ internal sealed class SqlTranslator
         }
 
         // A captured variable, like minId: evaluate it and make it a parameter.
-        if (node is MemberExpression member)
+        if (node is MemberExpression member && IsCaptured(member))
         {
             var value = Expression.Lambda(member).Compile().DynamicInvoke();
 

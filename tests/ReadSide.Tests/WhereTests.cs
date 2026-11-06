@@ -579,4 +579,16 @@ public class WhereTests
 
         Assert.Equal("([PublishedAt] < [ReturnedAt])", sql);
     }
+
+    [Fact]
+    public void A_member_of_a_column_that_is_not_supported_says_it_cannot_be_translated()
+    {
+        Expression<Func<Book, bool>> expression = book => book.Title!.Length > 3;
+        var parameters = new Dictionary<string, object?>();
+
+        var error = Assert.Throws<NotSupportedException>(() =>
+            TestSql.ToSql(expression.Body, parameters));
+
+        Assert.Contains("Cannot translate", error.Message);
+    }
 }
