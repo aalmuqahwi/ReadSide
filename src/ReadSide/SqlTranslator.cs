@@ -487,8 +487,8 @@ internal sealed class SqlTranslator
             || (key is BinaryExpression
             {
                 NodeType: ExpressionType.Add or ExpressionType.Subtract or ExpressionType.Multiply
-                        or ExpressionType.Divide or ExpressionType.Modulo
-            } arithmetic
-                && (IsSortable(arithmetic.Left) || IsSortable(arithmetic.Right)));
+                        or ExpressionType.Divide or ExpressionType.Modulo or ExpressionType.Coalesce
+            } combined
+                && (IsSortable(combined.Left) || IsSortable(combined.Right)));
     }
 }
