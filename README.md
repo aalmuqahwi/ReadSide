@@ -93,6 +93,9 @@ Planned: registering all mappings of an assembly at once, and a dependency-injec
 - [x] `Contains`, `StartsWith`, `EndsWith` on strings, translated to `LIKE` (special characters are escaped)
 - [x] `Contains` on a list or array, translated to `IN`
 - [x] `string.IsNullOrEmpty`, translated to `IS NULL OR = ''`
+- [x] Nullable columns: `.HasValue` (as `IS NOT NULL`) and `.Value`
+- [x] Arithmetic (`+ - * / %`) and `??` (as `COALESCE`) in `Where`, `Select` and `OrderBy`
+- [x] `DateTime.Now` and `UtcNow` use the database clock (`GETDATE()` / `GETUTCDATE()`); `AddDays`, `AddHours` and the other Add methods become `DATEADD`
 - [x] Captured variables become parameters
 - [x] Every value is a parameter, never pasted into the SQL
 - [x] `OrderBy`, `OrderByDescending`, `ThenBy`, `ThenByDescending`
