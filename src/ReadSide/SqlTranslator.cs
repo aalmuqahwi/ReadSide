@@ -74,6 +74,16 @@ internal sealed class SqlTranslator
         // Comparisons and AND/OR. Comparing to null becomes IS NULL / IS NOT NULL.
         if (node is BinaryExpression binary)
         {
+            string left;
+            string right;
+
+            if(binary.NodeType == ExpressionType.Coalesce)
+            {
+                left = ToColumnOrValue(binary.Left, parameters);
+                right = ToColumnOrValue(binary.Right, parameters);
+                return $"COALESCE({left}, {right})";
+            }
+
             if (IsNull(binary.Right))
             {
                 var column = ToColumnOrValue(binary.Left, parameters);
@@ -85,10 +95,9 @@ internal sealed class SqlTranslator
                     return $"({column} IS NOT NULL)";
             }
 
-
             var isLogical = binary.NodeType is ExpressionType.AndAlso or ExpressionType.OrElse;
-            var left = isLogical ? ToSql(binary.Left, parameters) : ToColumnOrValue(binary.Left, parameters);
-            var right = isLogical ? ToSql(binary.Right, parameters) : ToColumnOrValue(binary.Right, parameters);
+            left = isLogical ? ToSql(binary.Left, parameters) : ToColumnOrValue(binary.Left, parameters);
+            right = isLogical ? ToSql(binary.Right, parameters) : ToColumnOrValue(binary.Right, parameters);
             var op = GetOperator(binary);
 
             return $"({left} {op} {right})";
