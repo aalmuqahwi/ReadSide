@@ -568,4 +568,15 @@ public class WhereTests
         Assert.Equal("([PublishedAt] > DATEADD(year, @p0, GETDATE()))", sql);
         Assert.Equal(-1, parameters["p0"]);
     }
+
+    [Fact]
+    public void Comparing_two_columns_where_the_right_one_is_Value_of_a_nullable()
+    {
+        Expression<Func<Book, bool>> predicate = b => b.PublishedAt < b.ReturnedAt!.Value;
+        var parameters = new Dictionary<string, object?>();
+
+        var sql = TestSql.ToSql(predicate.Body, parameters);
+
+        Assert.Equal("([PublishedAt] < [ReturnedAt])", sql);
+    }
 }

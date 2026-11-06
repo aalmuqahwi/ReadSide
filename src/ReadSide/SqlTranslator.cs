@@ -77,7 +77,7 @@ internal sealed class SqlTranslator
             string left;
             string right;
 
-            if(binary.NodeType == ExpressionType.Coalesce)
+            if (binary.NodeType == ExpressionType.Coalesce)
             {
                 left = ToColumnOrValue(binary.Left, parameters);
                 right = ToColumnOrValue(binary.Right, parameters);
@@ -361,7 +361,7 @@ internal sealed class SqlTranslator
             return constant.Value is null;
         }
 
-        if (expression is MemberExpression { Expression: not ParameterExpression } captured)
+        if (expression is MemberExpression captured && IsCaptured(captured))
         {
             return GetValue(captured) is null;
         }
@@ -490,5 +490,21 @@ internal sealed class SqlTranslator
                         or ExpressionType.Divide or ExpressionType.Modulo or ExpressionType.Coalesce
             } combined
                 && (IsSortable(combined.Left) || IsSortable(combined.Right)));
+    }
+
+    // Does this member chain end in a captured value, not in the lambda parameter?
+    //   minId                  → true  (a field of the closure)
+    //   DateTime.Now           → true  (static: no owner at all)
+    //   b.ReturnedAt.Value     → false (the chain ends in b)
+    private static bool IsCaptured(MemberExpression member)
+    {
+        Expression current = member;
+
+        while (current is MemberExpression { Expression: { } owner })
+        {
+            current = owner;
+        }
+
+        return current is not ParameterExpression;
     }
 }
