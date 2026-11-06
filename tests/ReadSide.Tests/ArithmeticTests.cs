@@ -73,4 +73,40 @@ public class ArithmeticTests
         Assert.Equal("SELECT ([Id] * @p0) AS [Double] FROM [Books]", result.Sql);
         Assert.Equal(2, result.Parameters["p0"]);
     }
+
+    [Fact]
+    public void Arithmetic_in_order_by_is_a_valid_sort_key()
+    {
+        var result = Query.From<Book>()
+            .Where(book => book.Id > 5)
+            .OrderBy(book => book.Id * 2)
+            .Build();
+
+        Assert.Equal("SELECT * FROM [Books] WHERE ([Id] > @p0) ORDER BY ([Id] * @p1) ASC", result.Sql);
+        Assert.Equal(5, result.Parameters["p0"]);
+        Assert.Equal(2, result.Parameters["p1"]);
+    }
+
+    [Fact]
+    public void Order_by_arithmetic_without_a_column_is_rejected()
+    {
+        var minId = 3;
+
+        var error = Assert.Throws<NotSupportedException>(() =>
+            Query.From<Book>().OrderBy(book => minId + 1).Build());
+
+        Assert.Contains("Cannot order by", error.Message);
+    }
+
+    [Fact]
+    public void Order_by_nested_arithmetic_with_a_column_is_a_valid_key()
+    {
+        var result = Query.From<Book>()
+            .OrderBy(book => book.Id * 2 + 1)
+            .Build();
+
+        Assert.Equal("SELECT * FROM [Books] ORDER BY (([Id] * @p0) + @p1) ASC", result.Sql);
+        Assert.Equal(2, result.Parameters["p0"]);
+        Assert.Equal(1, result.Parameters["p1"]);
+    }
 }

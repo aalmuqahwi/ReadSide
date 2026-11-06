@@ -459,14 +459,27 @@ internal sealed class SqlTranslator
 
         var key = StripConversions(node);
 
-        var isSortable = IsColumn(key, out _)
+        return IsSortable(key)
+            ? ToColumnOrValue(key, parameters)
+            : throw new NotSupportedException($"Cannot order by '{node}'. Use a column, arithmetic on a column, or a DateTime Add method.");
+    }
+
+    // Can SQL Server sort by this? A column, .Value of a nullable column, a DateTime Add method,
+    // or arithmetic where at least one side can be sorted by (so b.Id * 2 yes, minId + 1 no).
+    private static bool IsSortable(Expression key)
+    {
+        key = StripConversions(key);
+
+        return IsColumn(key, out _)
             || (key is MemberExpression { Member.Name: "Value", Expression: { } owner } && IsColumn(owner, out _))
             || (key is MethodCallExpression { Method: var method }
                 && method.DeclaringType == typeof(DateTime)
-                && TryGetDatePart(method.Name, out _));
-
-        return isSortable
-            ? ToColumnOrValue(key, parameters)
-            : throw new NotSupportedException($"Cannot order by '{node}'. Use a column or a DateTime Add method.");
+                && TryGetDatePart(method.Name, out _))
+            || (key is BinaryExpression
+            {
+                NodeType: ExpressionType.Add or ExpressionType.Subtract or ExpressionType.Multiply
+                        or ExpressionType.Divide or ExpressionType.Modulo
+            } arithmetic
+                && (IsSortable(arithmetic.Left) || IsSortable(arithmetic.Right)));
     }
 }
