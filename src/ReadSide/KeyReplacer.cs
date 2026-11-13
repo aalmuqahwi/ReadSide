@@ -17,4 +17,22 @@ internal sealed class KeyReplacer : ExpressionVisitor
 
     protected override Expression VisitParameter(ParameterExpression node)
         => node == _keyParameter ? _key : node;
+
+    // key.Title with a key of new { Title = b.Title, ... }   →   b.Title
+    protected override Expression VisitMember(MemberExpression node)
+    {
+        if (node.Expression == _keyParameter
+            && _key is NewExpression { Members: { } members } created)
+        {
+            for (var i = 0; i < members.Count; i++)
+            {
+                if (members[i].Name == node.Member.Name)
+                {
+                    return created.Arguments[i];
+                }
+            }
+        }
+
+        return base.VisitMember(node);
+    }
 }

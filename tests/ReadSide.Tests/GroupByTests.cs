@@ -16,4 +16,17 @@ public class GroupByTests
             "SELECT [IsAvailable] AS [Available], COUNT(*) AS [Total] FROM [Books] GROUP BY [IsAvailable]",
             result.Sql);
     }
+
+    [Fact]
+    public void Group_by_two_columns_with_a_count()
+    {
+        var result = Query.From<Book>()
+            .GroupBy(b => new { b.Title, b.IsAvailable })
+            .Select((key, group) => new { Name = key.Title, Available = key.IsAvailable, Total = group.Count() })
+            .Build();
+
+        Assert.Equal(
+            "SELECT [Title] AS [Name], [IsAvailable] AS [Available], COUNT(*) AS [Total] FROM [Books] GROUP BY [Title], [IsAvailable]",
+            result.Sql);
+    }
 }
