@@ -8,16 +8,27 @@ public sealed class AggregateQuery<T>
 {
     private readonly ReadSideOptions _options;
     private readonly IReadOnlyList<Expression> _conditions;
-    private readonly string _columns;
+    private readonly AggregateFunction _function;
+    private readonly Expression? _expression;
 
     internal AggregateQuery(
         ReadSideOptions options,
         IReadOnlyList<Expression> conditions,
-        string columns)
+        AggregateFunction function)
+        : this(options, conditions, function, null)
+    {
+    }
+
+    internal AggregateQuery(
+        ReadSideOptions options,
+        IReadOnlyList<Expression> conditions,
+        AggregateFunction function,
+        Expression? expression)
     {
         _options = options;
         _conditions = conditions;
-        _columns = columns;
+        _function = function;
+        _expression = expression;
     }
 
     /// <summary>Builds the SQL Server statement and its parameters.</summary>
@@ -27,10 +38,18 @@ public sealed class AggregateQuery<T>
     {
         var parameters = new Dictionary<string, object?>();
         var translator = new SqlTranslator(_options);
+
+        // "*" when there is nothing to aggregate (COUNT(*)), otherwise the translated lambda, like [Id].
+        var argument = _expression is null
+            ? "*"
+            : translator.ToColumnOrValue(_expression, parameters);
+
+        var columns = $"{(_function.Value)}({argument})";
+
         var fromClause = translator.ToFrom(typeof(T));
         var whereClause = translator.ToWhere(_conditions, parameters);
 
-        var sql = $"SELECT {_columns} FROM {fromClause}{whereClause}";
+        var sql = $"SELECT {columns} FROM {fromClause}{whereClause}";
 
         return new SqlResult(sql, parameters);
     }

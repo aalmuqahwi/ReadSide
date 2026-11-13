@@ -90,7 +90,7 @@ public sealed class Query<T>
     /// <summary>Counts the rows that match the conditions, as <c>SELECT COUNT(*)</c>.</summary>
     /// <returns>A query that can only be built.</returns>
     public AggregateQuery<T> Count()
-        => new(_state.Options, _state.Conditions, "COUNT(*)");
+        => new(_state.Options, _state.Conditions, AggregateFunction.Count);
 
     /// <summary>Builds the SQL Server statement and its parameters.</summary>
     /// <returns>The SQL text and the parameter values.</returns>
@@ -105,21 +105,6 @@ public sealed class Query<T>
         var columns = _state.Columns is null
             ? translator.ToDefaultColumns(typeof(T))
             : translator.ToColumnOrValue(_state.Columns, parameters);
-
-        // var entity = _state.Options.Find(typeof(T));
-        // var table = SqlTranslator.Quote(entity?.Table ?? typeof(T).Name + "s");
-
-        // var from = entity?.Schema is { } schema
-        //     ? $"{SqlTranslator.Quote(schema)}.{table}"
-        //     : table;
-
-        // var sql = $"SELECT {columns} FROM {from}";
-
-        // if (_state.Conditions.Count > 0)
-        // {
-        //     var conditions = _state.Conditions.Select(c => translator.ToSql(c, parameters));
-        //     sql += " WHERE " + string.Join(" AND ", conditions);
-        // }
 
         var fromClause = translator.ToFrom(typeof(T));
         var whereClause = translator.ToWhere(_state.Conditions, parameters);
