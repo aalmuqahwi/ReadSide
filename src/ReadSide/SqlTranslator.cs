@@ -217,11 +217,18 @@ internal sealed class SqlTranslator
             return "COUNT(*)";
         }
 
-        if (node is MethodCallExpression { Method: { Name: "Sum", DeclaringType: { IsGenericType: true } sumOwner } } sumCall
+        if (node is MethodCallExpression { Method: { Name: "Sum" or "Min" or "Max", DeclaringType: { IsGenericType: true } sumOwner } } sumCall
             && sumOwner.GetGenericTypeDefinition() == typeof(Group<>)
             && sumCall.Arguments[0] is LambdaExpression selector)
         {
-            return $"SUM({ToColumnOrValue(selector.Body, parameters)})";
+            var function = sumCall.Method.Name switch
+            {
+                "Sum" => AggregateFunction.Sum,
+                "Min" => AggregateFunction.Min,
+                "Max" => AggregateFunction.Max,
+                _ => throw new NotSupportedException($"Cannot translate '{node}' to SQL.")
+            };
+            return $"{function.Value}({ToColumnOrValue(selector.Body, parameters)})";
         }
 
         throw new NotSupportedException($"Cannot translate '{node}' to SQL (node type: {node.NodeType}).");

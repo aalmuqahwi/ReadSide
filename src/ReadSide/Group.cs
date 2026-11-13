@@ -15,4 +15,12 @@ public sealed class Group<T>
     /// <summary>Sums a value over the rows of the group. Only valid inside a ReadSide Select.</summary>
     public TValue Sum<TValue>(Func<T, TValue> selector)
         => throw new InvalidOperationException("Group methods can only be used inside a ReadSide Select.");
+
+    /// <summary>Finds the smallest value over the rows of the group. Only valid inside a ReadSide Select.</summary>
+    public TValue Min<TValue>(Func<T, TValue> selector)
+        => throw new InvalidOperationException("Group methods can only be used inside a ReadSide Select.");
+
+    /// <summary>Finds the largest value over the rows of the group. Only valid inside a ReadSide Select.</summary>
+    public TValue Max<TValue>(Func<T, TValue> selector)
+        => throw new InvalidOperationException("Group methods can only be used inside a ReadSide Select.");
 }

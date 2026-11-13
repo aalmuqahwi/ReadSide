@@ -42,4 +42,30 @@ public class GroupByTests
             "SELECT [IsAvailable] AS [Available], SUM([Id]) AS [Total] FROM [Books] GROUP BY [IsAvailable]",
             result.Sql);
     }
+
+    [Fact]
+    public void Group_by_one_column_with_a_min()
+    {
+        var result = Query.From<Book>()
+            .GroupBy(b => b.IsAvailable)
+            .Select((key, group) => new { Available = key, Lowest = group.Min(b => b.Id) })
+            .Build();
+
+        Assert.Equal(
+            "SELECT [IsAvailable] AS [Available], MIN([Id]) AS [Lowest] FROM [Books] GROUP BY [IsAvailable]",
+            result.Sql);
+    }
+
+    [Fact]
+    public void Group_by_one_column_with_a_max()
+    {
+        var result = Query.From<Book>()
+            .GroupBy(b => b.IsAvailable)
+            .Select((key, group) => new { Available = key, Highest = group.Max(b => b.Id) })
+            .Build();
+
+        Assert.Equal(
+            "SELECT [IsAvailable] AS [Available], MAX([Id]) AS [Highest] FROM [Books] GROUP BY [IsAvailable]",
+            result.Sql);
+    }
 }
