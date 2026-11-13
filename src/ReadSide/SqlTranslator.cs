@@ -211,6 +211,11 @@ internal sealed class SqlTranslator
             return $"DATEADD({datePart}, @{name}, {column})";
         }
 
+        if (node is MethodCallExpression { Method: { Name: "Count", DeclaringType: { IsGenericType: true } aggOwner } }
+            && aggOwner.GetGenericTypeDefinition() == typeof(Group<>))
+        {
+            return "COUNT(*)";
+        }
         throw new NotSupportedException($"Cannot translate '{node}' to SQL (node type: {node.NodeType}).");
     }
 

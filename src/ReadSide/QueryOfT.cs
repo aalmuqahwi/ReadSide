@@ -120,6 +120,14 @@ public sealed class Query<T>
     public AggregateQuery<T> Average<TValue>(Expression<Func<T, TValue>> selector)
         => new(_state.Options, _state.Conditions, AggregateFunction.Average, selector.Body);
 
+
+    /// <summary>Groups the rows by a column, or by several columns with an anonymous type.</summary>
+    /// <param name="key">What to group by, such as <c>b => b.IsAvailable</c> or <c>b => new { b.Title, b.IsAvailable }</c>.</param>
+    /// <typeparam name="TKey">The type of the key.</typeparam>
+    /// <returns>A grouped query. The next step is <c>Select</c>.</returns>
+    public GroupByQuery<T, TKey> GroupBy<TKey>(Expression<Func<T, TKey>> key)
+        => new(_state.Options, _state.Conditions, key.Body);
+
     /// <summary>Builds the SQL Server statement and its parameters.</summary>
     /// <returns>The SQL text and the parameter values.</returns>
     /// <exception cref="NotSupportedException">A lambda contains an expression that can't be translated.</exception>
