@@ -507,4 +507,32 @@ internal sealed class SqlTranslator
 
         return current is not ParameterExpression;
     }
+
+    // The table to read from, with the schema when the mapping has one.
+    //   no mapping, Book      → [Books]
+    //   Table + Schema mapped → [dbo].[BookListtbl]
+    internal string ToFrom(Type entity)
+    {
+        var map = _options.Find(entity);
+        var table = Quote(map?.Table ?? entity.Name + "s");
+
+        return map?.Schema is { } schema
+            ? $"{Quote(schema)}.{table}"
+            : table;
+    }
+
+
+    // The WHERE part, with a leading space, or nothing when there are no conditions.
+    //   no conditions   → ""
+    //   two conditions  → " WHERE (a) AND (b)"
+    internal string ToWhere(IReadOnlyList<Expression> conditions, Dictionary<string, object?> parameters)
+    {
+        if (conditions.Count == 0)
+        {
+            return "";
+        }
+
+        var translated = conditions.Select(c => ToSql(c, parameters));
+        return " WHERE " + string.Join(" AND ", translated);
+    }
 }

@@ -31,7 +31,7 @@ public sealed class Query<T>
 
     internal Query(ReadSideOptions options) : this(State.Empty(options))
     {
-        
+
     }
 
     private Query(State state)
@@ -87,6 +87,11 @@ public sealed class Query<T>
     public Query<T> Take(int rows)
         => new(_state with { Take = rows });
 
+    /// <summary>Counts the rows that match the conditions, as <c>SELECT COUNT(*)</c>.</summary>
+    /// <returns>A query that can only be built.</returns>
+    public AggregateQuery<T> Count()
+        => new(_state.Options, _state.Conditions, "COUNT(*)");
+
     /// <summary>Builds the SQL Server statement and its parameters.</summary>
     /// <returns>The SQL text and the parameter values.</returns>
     /// <exception cref="NotSupportedException">A lambda contains an expression that can't be translated.</exception>
@@ -101,20 +106,26 @@ public sealed class Query<T>
             ? translator.ToDefaultColumns(typeof(T))
             : translator.ToColumnOrValue(_state.Columns, parameters);
 
-        var entity = _state.Options.Find(typeof(T));
-        var table = SqlTranslator.Quote(entity?.Table ?? typeof(T).Name + "s");
+        // var entity = _state.Options.Find(typeof(T));
+        // var table = SqlTranslator.Quote(entity?.Table ?? typeof(T).Name + "s");
 
-        var from = entity?.Schema is { } schema
-            ? $"{SqlTranslator.Quote(schema)}.{table}"
-            : table;
+        // var from = entity?.Schema is { } schema
+        //     ? $"{SqlTranslator.Quote(schema)}.{table}"
+        //     : table;
 
-        var sql = $"SELECT {columns} FROM {from}";
+        // var sql = $"SELECT {columns} FROM {from}";
 
-        if (_state.Conditions.Count > 0)
-        {
-            var conditions = _state.Conditions.Select(c => translator.ToSql(c, parameters));
-            sql += " WHERE " + string.Join(" AND ", conditions);
-        }
+        // if (_state.Conditions.Count > 0)
+        // {
+        //     var conditions = _state.Conditions.Select(c => translator.ToSql(c, parameters));
+        //     sql += " WHERE " + string.Join(" AND ", conditions);
+        // }
+
+        var fromClause = translator.ToFrom(typeof(T));
+        var whereClause = translator.ToWhere(_state.Conditions, parameters);
+
+        var sql = $"SELECT {columns} FROM {fromClause}{whereClause}";
+
 
         if (_state.Orders.Count > 0)
         {
