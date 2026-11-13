@@ -92,6 +92,13 @@ public sealed class Query<T>
     public AggregateQuery<T> Count()
         => new(_state.Options, _state.Conditions, AggregateFunction.Count);
 
+    /// <summary>Adds up a column or expression, as <c>SELECT SUM(...)</c>.</summary>
+    /// <param name="selector">What to add up, such as <c>b => b.Id</c>.</param>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <returns>A query that can only be built.</returns>
+    public AggregateQuery<T> Sum<TValue>(Expression<Func<T, TValue>> selector)
+        => new(_state.Options, _state.Conditions, AggregateFunction.Sum, selector.Body);
+
     /// <summary>Builds the SQL Server statement and its parameters.</summary>
     /// <returns>The SQL text and the parameter values.</returns>
     /// <exception cref="NotSupportedException">A lambda contains an expression that can't be translated.</exception>

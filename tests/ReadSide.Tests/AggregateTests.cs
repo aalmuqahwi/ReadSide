@@ -20,4 +20,25 @@ public class AggregateTests
 
         Assert.Equal("SELECT COUNT(*) FROM [Books] WHERE ([IsAvailable] = 1)", result.Sql);
     }
+
+    [Fact]
+    public void Sum_adds_up_a_column()
+    {
+        var result = Query.From<Book>().Sum(b => b.Id).Build();
+
+        Assert.Equal("SELECT SUM([Id]) FROM [Books]", result.Sql);
+    }
+
+    [Fact]
+    public void Sum_of_an_expression_numbers_its_parameter_before_the_where()
+    {
+        var result = Query.From<Book>()
+            .Where(b => b.Id > 5)
+            .Sum(b => b.Id * 2)
+            .Build();
+
+        Assert.Equal("SELECT SUM(([Id] * @p0)) FROM [Books] WHERE ([Id] > @p1)", result.Sql);
+        Assert.Equal(2, result.Parameters["p0"]);
+        Assert.Equal(5, result.Parameters["p1"]);
+    }
 }

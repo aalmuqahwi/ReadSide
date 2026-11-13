@@ -4,6 +4,7 @@ namespace ReadSide;
 internal sealed class AggregateFunction
 {
     public static readonly AggregateFunction Count = new("COUNT");
+    public static readonly AggregateFunction Sum = new("SUM");
 
     public string Value { get; }
 
