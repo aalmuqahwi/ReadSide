@@ -99,6 +99,27 @@ public sealed class Query<T>
     public AggregateQuery<T> Sum<TValue>(Expression<Func<T, TValue>> selector)
         => new(_state.Options, _state.Conditions, AggregateFunction.Sum, selector.Body);
 
+    /// <summary>Finds the smallest value, as <c>SELECT MIN(...)</c>.</summary>
+    /// <param name="selector">The column or expression, such as <c>b => b.Id</c>.</param>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <returns>A query that can only be built.</returns>
+    public AggregateQuery<T> Min<TValue>(Expression<Func<T, TValue>> selector)
+        => new(_state.Options, _state.Conditions, AggregateFunction.Min, selector.Body);
+
+    /// <summary>Finds the largest value, as <c>SELECT MAX(...)</c>.</summary>
+    /// <param name="selector">The column or expression, such as <c>b => b.PublishedAt</c>.</param>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <returns>A query that can only be built.</returns>
+    public AggregateQuery<T> Max<TValue>(Expression<Func<T, TValue>> selector)
+        => new(_state.Options, _state.Conditions, AggregateFunction.Max, selector.Body);
+
+    /// <summary>Finds the average, as <c>SELECT AVG(...)</c>.</summary>
+    /// <param name="selector">The column or expression, such as <c>b => b.Id</c>.</param>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <returns>A query that can only be built.</returns>
+    public AggregateQuery<T> Average<TValue>(Expression<Func<T, TValue>> selector)
+        => new(_state.Options, _state.Conditions, AggregateFunction.Average, selector.Body);
+
     /// <summary>Builds the SQL Server statement and its parameters.</summary>
     /// <returns>The SQL text and the parameter values.</returns>
     /// <exception cref="NotSupportedException">A lambda contains an expression that can't be translated.</exception>

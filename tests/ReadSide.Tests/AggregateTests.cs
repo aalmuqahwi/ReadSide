@@ -41,4 +41,28 @@ public class AggregateTests
         Assert.Equal(2, result.Parameters["p0"]);
         Assert.Equal(5, result.Parameters["p1"]);
     }
+
+    [Fact]
+    public void Min_finds_the_smallest_value()
+    {
+        var result = Query.From<Book>().Min(b => b.Id).Build();
+
+        Assert.Equal("SELECT MIN([Id]) FROM [Books]", result.Sql);
+    }
+
+    [Fact]
+    public void Max_finds_the_largest_value()
+    {
+        var result = Query.From<Book>().Max(b => b.PublishedAt).Build();
+
+        Assert.Equal("SELECT MAX([PublishedAt]) FROM [Books]", result.Sql);
+    }
+
+    [Fact]
+    public void Average_becomes_AVG()
+    {
+        var result = Query.From<Book>().Average(b => b.Id).Build();
+
+        Assert.Equal("SELECT AVG([Id]) FROM [Books]", result.Sql);
+    }
 }
