@@ -11,4 +11,8 @@ public sealed class Group<T>
     /// <summary>Counts the rows in the group, as <c>COUNT(*)</c>.</summary>
     /// <returns>Never returns. Use it inside a ReadSide <c>Select</c> only.</returns>
     public int Count() => throw new InvalidOperationException("Group methods can only be used inside a ReadSide Select.");
+
+    /// <summary>Sums a value over the rows of the group. Only valid inside a ReadSide Select.</summary>
+    public TValue Sum<TValue>(Func<T, TValue> selector)
+        => throw new InvalidOperationException("Group methods can only be used inside a ReadSide Select.");
 }

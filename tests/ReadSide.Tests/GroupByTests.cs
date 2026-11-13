@@ -29,4 +29,17 @@ public class GroupByTests
             "SELECT [Title] AS [Name], [IsAvailable] AS [Available], COUNT(*) AS [Total] FROM [Books] GROUP BY [Title], [IsAvailable]",
             result.Sql);
     }
+
+    [Fact]
+    public void Group_by_one_column_with_a_sum()
+    {
+        var result = Query.From<Book>()
+            .GroupBy(b => b.IsAvailable)
+            .Select((key, group) => new { Available = key, Total = group.Sum(b => b.Id) })
+            .Build();
+
+        Assert.Equal(
+            "SELECT [IsAvailable] AS [Available], SUM([Id]) AS [Total] FROM [Books] GROUP BY [IsAvailable]",
+            result.Sql);
+    }
 }

@@ -211,11 +211,19 @@ internal sealed class SqlTranslator
             return $"DATEADD({datePart}, @{name}, {column})";
         }
 
-        if (node is MethodCallExpression { Method: { Name: "Count", DeclaringType: { IsGenericType: true } aggOwner } }
-            && aggOwner.GetGenericTypeDefinition() == typeof(Group<>))
+        if (node is MethodCallExpression { Method: { Name: "Count", DeclaringType: { IsGenericType: true } countCall } }
+            && countCall.GetGenericTypeDefinition() == typeof(Group<>))
         {
             return "COUNT(*)";
         }
+
+        if (node is MethodCallExpression { Method: { Name: "Sum", DeclaringType: { IsGenericType: true } sumOwner } } sumCall
+            && sumOwner.GetGenericTypeDefinition() == typeof(Group<>)
+            && sumCall.Arguments[0] is LambdaExpression selector)
+        {
+            return $"SUM({ToColumnOrValue(selector.Body, parameters)})";
+        }
+
         throw new NotSupportedException($"Cannot translate '{node}' to SQL (node type: {node.NodeType}).");
     }
 
