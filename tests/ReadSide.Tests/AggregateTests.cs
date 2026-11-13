@@ -4,6 +4,16 @@ namespace ReadSide.Tests;
 
 public class AggregateTests
 {
+    private class BookMapping : IEntityMapping<Book>
+    {
+        public void Configure(EntityMappingBuilder<Book> entity)
+        {
+            entity.Table("BookListtbl")
+                .Schema("dbo")
+                .Column(b => b.Title, "Title_Txt");
+        }
+    }
+
     [Fact]
     public void Count_counts_all_rows()
     {
@@ -64,5 +74,15 @@ public class AggregateTests
         var result = Query.From<Book>().Average(b => b.Id).Build();
 
         Assert.Equal("SELECT AVG([Id]) FROM [Books]", result.Sql);
+    }
+
+    [Fact]
+    public void An_aggregate_uses_the_mapped_column_and_table()
+    {
+        var factory = new QueryFactory(new ReadSideOptions().Add(new BookMapping()));
+
+        var result = factory.From<Book>().Max(b => b.Title).Build();
+
+        Assert.Equal("SELECT MAX([Title_Txt]) FROM [dbo].[BookListtbl]", result.Sql);
     }
 }
