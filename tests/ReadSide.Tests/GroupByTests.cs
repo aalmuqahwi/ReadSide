@@ -68,4 +68,17 @@ public class GroupByTests
             "SELECT [IsAvailable] AS [Available], MAX([Id]) AS [Highest] FROM [Books] GROUP BY [IsAvailable]",
             result.Sql);
     }
+
+    [Fact]
+    public void Group_by_one_column_with_an_average()
+    {
+        var result = Query.From<Book>()
+            .GroupBy(b => b.IsAvailable)
+            .Select((key, group) => new { Available = key, Mean = group.Average(b => b.Id) })
+            .Build();
+
+        Assert.Equal(
+            "SELECT [IsAvailable] AS [Available], AVG([Id]) AS [Mean] FROM [Books] GROUP BY [IsAvailable]",
+            result.Sql);
+    }
 }
