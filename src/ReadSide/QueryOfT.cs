@@ -89,36 +89,35 @@ public sealed class Query<T>
 
     /// <summary>Counts the rows that match the conditions, as <c>SELECT COUNT(*)</c>.</summary>
     /// <returns>A query that can only be built.</returns>
-    public AggregateQuery<T> Count()
-        => new(_state.Options, _state.Conditions, AggregateFunction.Count);
+    public AggregateQuery<T> Count() => ToAggregate(AggregateFunction.Count);
 
     /// <summary>Adds up a column or expression, as <c>SELECT SUM(...)</c>.</summary>
     /// <param name="selector">What to add up, such as <c>b => b.Id</c>.</param>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <returns>A query that can only be built.</returns>
     public AggregateQuery<T> Sum<TValue>(Expression<Func<T, TValue>> selector)
-        => new(_state.Options, _state.Conditions, AggregateFunction.Sum, selector.Body);
+        => ToAggregate(AggregateFunction.Sum, selector.Body);
 
     /// <summary>Finds the smallest value, as <c>SELECT MIN(...)</c>.</summary>
     /// <param name="selector">The column or expression, such as <c>b => b.Id</c>.</param>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <returns>A query that can only be built.</returns>
     public AggregateQuery<T> Min<TValue>(Expression<Func<T, TValue>> selector)
-        => new(_state.Options, _state.Conditions, AggregateFunction.Min, selector.Body);
+        => ToAggregate(AggregateFunction.Min, selector.Body);
 
     /// <summary>Finds the largest value, as <c>SELECT MAX(...)</c>.</summary>
     /// <param name="selector">The column or expression, such as <c>b => b.PublishedAt</c>.</param>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <returns>A query that can only be built.</returns>
     public AggregateQuery<T> Max<TValue>(Expression<Func<T, TValue>> selector)
-        => new(_state.Options, _state.Conditions, AggregateFunction.Max, selector.Body);
+        => ToAggregate(AggregateFunction.Max, selector.Body);
 
     /// <summary>Finds the average, as <c>SELECT AVG(...)</c>.</summary>
     /// <param name="selector">The column or expression, such as <c>b => b.Id</c>.</param>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <returns>A query that can only be built.</returns>
     public AggregateQuery<T> Average<TValue>(Expression<Func<T, TValue>> selector)
-        => new(_state.Options, _state.Conditions, AggregateFunction.Average, selector.Body);
+        => ToAggregate(AggregateFunction.Average, selector.Body);
 
 
     /// <summary>Groups the rows by a column, or by several columns with an anonymous type.</summary>
@@ -173,5 +172,13 @@ public sealed class Query<T>
         }
 
         return new SqlResult(sql, parameters);
+    }
+
+    private AggregateQuery<T> ToAggregate(AggregateFunction function, Expression? expression = null)
+    {
+        return _state.Columns is not null
+            ? throw new InvalidOperationException(
+                "Select cannot come before Count, Sum, Min, Max or Average. Use them on their own.")
+            : new(_state.Options, _state.Conditions, function, expression);
     }
 }

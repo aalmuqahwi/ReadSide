@@ -85,4 +85,16 @@ public class AggregateTests
 
         Assert.Equal("SELECT MAX([Title_Txt]) FROM [dbo].[BookListtbl]", result.Sql);
     }
+
+    [Fact]
+    public void Select_before_count_is_rejected()
+    {
+        var query = Query.From<Book>().Select(b => new { b.Id });
+
+        var exception = Assert.Throws<InvalidOperationException>(() => query.Count());
+
+        Assert.Equal(
+            "Select cannot come before Count, Sum, Min, Max or Average. Use them on their own.",
+            exception.Message);
+    }
 }
