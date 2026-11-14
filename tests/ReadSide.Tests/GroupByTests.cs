@@ -96,4 +96,16 @@ public class GroupByTests
             result.Sql);
 
     }
+
+    [Fact]
+    public void Select_before_group_by_is_rejected()
+    {
+        var query = Query.From<Book>().Select(b => new { b.Id });
+
+        var exception = Assert.Throws<InvalidOperationException>(() => query.GroupBy(b => b.IsAvailable));
+
+        Assert.Equal(
+            "Select cannot come before GroupBy. Use GroupBy(...).Select((key, group) => ...) instead.",
+            exception.Message);
+    }
 }

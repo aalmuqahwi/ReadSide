@@ -126,7 +126,12 @@ public sealed class Query<T>
     /// <typeparam name="TKey">The type of the key.</typeparam>
     /// <returns>A grouped query. The next step is <c>Select</c>.</returns>
     public GroupByQuery<T, TKey> GroupBy<TKey>(Expression<Func<T, TKey>> key)
-        => new(_state.Options, _state.Conditions, key.Body);
+    {
+        return _state.Columns is not null
+            ? throw new InvalidOperationException(
+                "Select cannot come before GroupBy. Use GroupBy(...).Select((key, group) => ...) instead.")
+            : new(_state.Options, _state.Conditions, key.Body);
+    }
 
     /// <summary>Builds the SQL Server statement and its parameters.</summary>
     /// <returns>The SQL text and the parameter values.</returns>
