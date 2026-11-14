@@ -81,4 +81,19 @@ public class GroupByTests
             "SELECT [IsAvailable] AS [Available], AVG([Id]) AS [Mean] FROM [Books] GROUP BY [IsAvailable]",
             result.Sql);
     }
+
+    [Fact]
+    public void Where_before_group_by_comes_before_the_group_by_clause()
+    {
+        var result = Query.From<Book>()
+            .Where(b => b.Id > 10)
+            .GroupBy(b => b.IsAvailable)
+            .Select((key, group) => new { Available = key, Total = group.Count() })
+            .Build();
+
+        Assert.Equal(
+            "SELECT [IsAvailable] AS [Available], COUNT(*) AS [Total] FROM [Books] WHERE ([Id] > @p0) GROUP BY [IsAvailable]",
+            result.Sql);
+
+    }
 }
