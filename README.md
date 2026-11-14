@@ -106,8 +106,8 @@ Planned: registering all mappings of an assembly at once, and a dependency-injec
 - [x] Select into classes (`new Dto { ... }`)
 - [x] Table, schema and column mapping (`IEntityMapping<T>`)
 - [x] Ignore a property in a mapping (`entity.Ignore(b => b.Prop)`)
+- [x] Aggregates (`Count`, `Sum`, `Min`, `Max`, `Average`) and `GroupBy(...).Select((key, group) => ...)`
 - [ ] Pluggable dialects (PostgreSQL, MySQL, ...)
-- [ ] Aggregates and `GroupBy`
 - [ ] Joins
 - [ ] Raw SQL fragments
 - [ ] Dapper and dependency-injection packages
@@ -117,11 +117,12 @@ Planned: registering all mappings of an assembly at once, and a dependency-injec
 
 - SQL Server syntax only
 - Mapping covers table, schema, column names and ignored properties. Views, query filters and value converters are not supported yet
-- No nested members (`b.Author.Name`), aggregates, or joins
-- Only these method calls are translated: `Contains`, `StartsWith` and `EndsWith` on strings, and `Contains` on a list or array. Other methods throw a clear error.
+- No nested members (`b.Author.Name`) or joins
+- Only these method calls are translated: `Contains`, `StartsWith`, `EndsWith` and `string.IsNullOrEmpty` on strings, `Contains` on a list or array, the `DateTime` Add methods (`AddDays`, `AddHours`, ...), and `Count`, `Sum`, `Min`, `Max` and `Average` on a group. Other methods throw a clear error.
 - `IN` lists are limited by SQL Server's maximum of about 2,100 parameters per statement
 - Window functions are not planned
 - `ORDER BY` accepts a column, `.Value` on a nullable column, or a `DateTime` Add method on a column. To sort by several columns, chain `ThenBy`. Sorting by a condition is not supported yet.
+- Aggregates: `Having`, `OrderBy` on an aggregate, and several aggregates in one query without `GroupBy` are not supported yet. `Select` cannot come before `GroupBy` or an aggregate.
 
 ## Design notes
 
