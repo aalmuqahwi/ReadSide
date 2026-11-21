@@ -122,4 +122,48 @@ public class GroupByTests
             "SELECT [IsAvailable] AS [Available], COUNT(*) AS [Total] FROM [Books] GROUP BY [IsAvailable] HAVING (COUNT(*) > @p0)",
             result.Sql);
     }
+
+    [Fact]
+    public void Having_parameters_come_after_where_parameters()
+    {
+        var result = Query.From<Book>()
+            .Where(b => b.Id > 10)
+            .GroupBy(b => b.IsAvailable)
+            .Having((key, group) => group.Count() > 5)
+            .Select((key, group) => new { Available = key, Total = group.Count() })
+            .Build();
+
+        Assert.Equal(
+            "SELECT [IsAvailable] AS [Available], COUNT(*) AS [Total] FROM [Books] WHERE ([Id] > @p0) GROUP BY [IsAvailable] HAVING (COUNT(*) > @p1)",
+            result.Sql);
+    }
+
+    [Fact]
+    public void Having_can_use_the_key()
+    {
+        var result = Query.From<Book>()
+            .GroupBy(b => b.Title)
+            .Having((key, group) => key != "Draft")
+            .Select((key, group) => new { Name = key, Total = group.Count() })
+            .Build();
+
+        Assert.Equal(
+            "SELECT [Title] AS [Name], COUNT(*) AS [Total] FROM [Books] GROUP BY [Title] HAVING ([Title] <> @p0)",
+            result.Sql);
+    }
+
+    [Fact]
+    public void Several_having_calls_are_joined_with_and()
+    {
+        var result = Query.From<Book>()
+            .GroupBy(b => b.Title)
+            .Having((key, group) => key != "Draft")
+            .Having((key, group) => group.Count() > 1)
+            .Select((key, group) => new { Name = key, Total = group.Count() })
+            .Build();
+
+        Assert.Equal(
+            "SELECT [Title] AS [Name], COUNT(*) AS [Total] FROM [Books] GROUP BY [Title] HAVING ([Title] <> @p0) AND (COUNT(*) > @p1)",
+            result.Sql);
+    }
 }
