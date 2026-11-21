@@ -556,4 +556,9 @@ internal sealed class SqlTranslator
         var translated = conditions.Select(c => ToSql(c, parameters));
         return " WHERE " + string.Join(" AND ", translated);
     }
+
+    internal string ToHaving(IReadOnlyList<Expression> conditions, Dictionary<string, object?> parameters)
+        => conditions.Count == 0
+            ? ""
+            : " HAVING " + string.Join(" AND ", conditions.Select(c => ToSql(c, parameters)));
 }

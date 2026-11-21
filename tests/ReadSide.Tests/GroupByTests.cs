@@ -108,4 +108,18 @@ public class GroupByTests
             "Select cannot come before GroupBy. Use GroupBy(...).Select((key, group) => ...) instead.",
             exception.Message);
     }
+
+    [Fact]
+    public void Having_filters_groups_by_a_count()
+    {
+        var result = Query.From<Book>()
+            .GroupBy(b => b.IsAvailable)
+            .Having((key, group) => group.Count() > 5)
+            .Select((key, group) => new { Available = key, Total = group.Count() })
+            .Build();
+
+        Assert.Equal(
+            "SELECT [IsAvailable] AS [Available], COUNT(*) AS [Total] FROM [Books] GROUP BY [IsAvailable] HAVING (COUNT(*) > @p0)",
+            result.Sql);
+    }
 }
