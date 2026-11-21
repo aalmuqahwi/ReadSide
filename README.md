@@ -106,7 +106,7 @@ Planned: registering all mappings of an assembly at once, and a dependency-injec
 - [x] Select into classes (`new Dto { ... }`)
 - [x] Table, schema and column mapping (`IEntityMapping<T>`)
 - [x] Ignore a property in a mapping (`entity.Ignore(b => b.Prop)`)
-- [x] Aggregates (`Count`, `Sum`, `Min`, `Max`, `Average`) and `GroupBy(...).Select((key, group) => ...)`
+- [x] Aggregates (`Count`, `Sum`, `Min`, `Max`, `Average`), `GroupBy(...).Select((key, group) => ...)` and `Having`
 - [ ] Pluggable dialects (PostgreSQL, MySQL, ...)
 - [ ] Joins
 - [ ] Raw SQL fragments
@@ -122,7 +122,7 @@ Planned: registering all mappings of an assembly at once, and a dependency-injec
 - `IN` lists are limited by SQL Server's maximum of about 2,100 parameters per statement
 - Window functions are not planned
 - `ORDER BY` accepts a column, `.Value` on a nullable column, or a `DateTime` Add method on a column. To sort by several columns, chain `ThenBy`. Sorting by a condition is not supported yet.
-- Aggregates: `Having`, `OrderBy` on an aggregate, and several aggregates in one query without `GroupBy` are not supported yet. `Select` cannot come before `GroupBy` or an aggregate.
+- Aggregates: `OrderBy` on an aggregate and several aggregates in one query without `GroupBy` are not supported yet. `Select` cannot come before `GroupBy` or an aggregate.
 
 ## Design notes
 
